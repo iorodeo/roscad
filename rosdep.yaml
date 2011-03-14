@@ -4,7 +4,7 @@ OpenCSG:
       sudo apt-get install libqt4-dev libqt4-opengl-dev libcgal-dev libxmu-dev libboost-dev cmake libglew1.5-dev bison flex libeigen2-dev git-core libglut3-dev
       mkdir -p ~/ros/ros-deps
       cd ~/ros/ros-deps
-      if [ ! -d OpenCSG-1.3.1 ] : then
+      if [ ! -d OpenCSG-1.3.1 ] ; then
         wget --tries=10 http://www.opencsg.org/OpenCSG-1.3.1.tar.gz
         tar -xzf OpenCSG-1.3.1.tar.gz
       fi
