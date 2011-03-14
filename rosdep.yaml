@@ -25,5 +25,5 @@ OpenSCAD:
       cd openscad
       qmake-qt4
       make
-      make install
+      sudo make install
     fi
