@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/py2scad</url>
 
   <rosdep name="OpenCSG" />
-  <!-- <rosdep name="OpenSCAD" /> -->
+  <rosdep name="OpenSCAD" />
 
 </package>
 
