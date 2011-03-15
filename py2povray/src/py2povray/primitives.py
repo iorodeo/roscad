@@ -23,7 +23,7 @@ class Variables(dict):
     # Any constructor kwargs become variables
     # Attribute getter returns the varaible name
     # Attribute setter sets variable value
-    # cmd_str method returns variable definition in scad syntax
+    # cmd_str method returns variable definition in povray syntax
     def __init__(self, comment='', **kwargs):
         self.comment = comment
         if not comment:
@@ -32,7 +32,7 @@ class Variables(dict):
         self._initialised = True
 
     def __getattr__(self, name):
-        """Return the openscad representation of the indicated variable."""
+        """Return the povray representation of the indicated variable."""
         if name in self:
             return name
         raise AttributeError(name)
@@ -63,10 +63,10 @@ class Variables(dict):
 
 # 3D primitives ---------------------------------------------------------------
 
-class Cube(base.SCAD_Object):
+class Cube(base.POVRAY_Object):
 
     def __init__(self, size=1.0, center=True, *args, **kwargs):
-        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
+        base.POVRAY_Object.__init__(self, center=center, *args, **kwargs)
         self.size = size
 
     def cmd_str(self,tab_level=0):
@@ -77,10 +77,10 @@ class Cube(base.SCAD_Object):
                                                        center_str,
                                                        facets)
 
-class Sphere(base.SCAD_Object):
+class Sphere(base.POVRAY_Object):
 
     def __init__(self, r=1.0, center=True, *args, **kwargs):
-        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
+        base.POVRAY_Object.__init__(self, center=center, *args, **kwargs)
         self.r = r
 
     def cmd_str(self,tab_level=0):
@@ -91,10 +91,10 @@ class Sphere(base.SCAD_Object):
                                                       center_str,
                                                       facets)
 
-class Cylinder(base.SCAD_Object):
+class Cylinder(base.POVRAY_Object):
 
     def __init__(self, h=1.0, r1=1.0, r2=None, center=True, *args, **kwargs):
-        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
+        base.POVRAY_Object.__init__(self, center=center, *args, **kwargs)
         self.h = h
         self.r1 = r1
         # r2 is optional
@@ -118,10 +118,10 @@ class Cylinder(base.SCAD_Object):
                                                              center_str,
                                                              facets)
 
-class Polyhedron(base.SCAD_Object):
+class Polyhedron(base.POVRAY_Object):
 
     def __init__(self, points, faces, center=True, *args, **kwargs):
-        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
+        base.POVRAY_Object.__init__(self, center=center, *args, **kwargs)
         self.points = points
         self.faces = faces
 
@@ -144,70 +144,16 @@ class Polyhedron(base.SCAD_Object):
         rtn_str = '%s%s);\n'%(rtn_str,tab_str0)
         return rtn_str
 
-class Import_STL(base.SCAD_Object):
+class Import_STL(base.POVRAY_Object):
 
     def __init__(self, filename, convexity=5, *args, **kwargs):
-        base.SCAD_Object.__init__(self, *args, **kwargs)
+        base.POVRAY_Object.__init__(self, *args, **kwargs)
         self.filename = filename
         self.convexity = convexity
 
     def cmd_str(self,tab_level=0):
         facets = self.facets() # Retreve object facet information
         return 'import_stl("{0.filename}",convexity={0.convexity:d}{1});'.format(self, facets)
-
-# 2D primatives ---------------------------------------------------------------
-
-class Circle(base.SCAD_Object):
-
-    def __init__(self, r=1, *args, **kwargs):
-        base.SCAD_Object.__init__(self, *args, **kwargs)
-        self.r = r
-
-    def cmd_str(self,tab_level=0):
-        facets = self.facets() # Retreve object facet information
-        r_str = utility.val_to_str(self.r)
-        rtn_str = 'circle(r={0}{1});'.format(r_str, facets)
-        return rtn_str
-
-class Square(base.SCAD_Object):
-
-    def __init__(self, size=[1,1], center=True, *args, **kwargs):
-        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
-        self.size = size
-
-    def cmd_str(self,tab_level=0):
-        facets = self.facets() # Retreve object facet information
-        size_str = utility.val_to_str(self.size)
-        center_str = self.center_str()
-        return 'square(size={0}, center={1}{2});'.format(size_str,
-                                                        center_str,
-                                                        facets)
-
-class Polygon(base.SCAD_Object):
-
-    def __init__(self, points, paths,  *args, **kwargs):
-        base.SCAD_Object.__init__(self, *args, **kwargs)
-        self.points = points
-        self.paths = paths
-
-    def cmd_str(self,tab_level=0):
-        facets = self.facets() # Retreve object facet information
-        tab_str0 = ' '*utility.TAB_WIDTH*tab_level
-        tab_str1 = ' '*utility.TAB_WIDTH*(tab_level+1)
-        rtn_str = 'polygon(\n'
-        rtn_str = '%s%spoints = [\n'%(rtn_str,tab_str1,)
-        for p in self.points:
-            p_str = utility.val_to_str(p,tab_level=tab_level+2)
-            rtn_str = '%s%s,\n'%(rtn_str,p_str)
-        rtn_str = '%s%s],\n'%(rtn_str,tab_str1,)
-        rtn_str = '%s%spaths = [\n'%(rtn_str,tab_str1,)
-        for p in self.paths:
-            p_str = utility.val_to_str(p,tab_level=tab_level+2)
-            rtn_str = '%s%s,\n'%(rtn_str,p_str)
-        rtn_str = '%s%s]\n'%(rtn_str,tab_str1,)
-        rtn_str += facets
-        rtn_str = '%s%s);\n'%(rtn_str,tab_str0)
-        return rtn_str
 
 if __name__ == "__main__":
     v = Variables(foo=5)
