@@ -20,6 +20,8 @@ import rospy
 import tf
 import geometry_msgs
 
+import copy
+
 
 class CADProject(object):
     """Wrapper for a CAD project."""
@@ -44,6 +46,15 @@ class CADObject(object):
         self.scale = geometry_msgs.msg.Vector3()
         self.set_scale(scale)
 
+        self.printable = False
+        self.color = []
+
+    def __str__(self):
+        return ""
+
+    def copy(self):
+        return copy.deepcopy(self)
+
     def set_pose_stamped(self,pose_stamped=geometry_msgs.msg.PoseStamped()):
         if type(pose_stamped) == type(geometry_msgs.msg.PoseStamped()):
             self.pose_stamped = pose_stamped
@@ -52,6 +63,7 @@ class CADObject(object):
         return self.pose_stamped
 
     def set_frame_id(self,frame_id=""):
+        self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(frame_id) == str:
             self.pose_stamped.header.frame_id = frame_id
 
@@ -59,6 +71,7 @@ class CADObject(object):
         return self.pose_stamped.header.frame_id
 
     def set_pose(self,pose=geometry_msgs.msg.Pose()):
+        self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(pose) == type(geometry_msgs.msg.Pose()):
             self.pose_stamped.pose = pose
 
@@ -66,6 +79,7 @@ class CADObject(object):
         return self.pose_stamped.pose
 
     def set_position(self,position=geometry_msgs.msg.Point()):
+        self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(position) == type(geometry_msgs.msg.Point()):
             self.pose_stamped.pose.position = position
         else:
@@ -76,8 +90,9 @@ class CADObject(object):
     def get_position(self):
         return self.pose_stamped.pose.position
 
-    def set_orientation(self,orientation=geometry_msgs.Quaternion()):
-        if type(orientation) == type(geometry_msgs.Quaternion()):
+    def set_orientation(self,orientation=geometry_msgs.msg.Quaternion()):
+        self.pose_stamped = copy.deepcopy(self.pose_stamped)
+        if type(orientation) == type(geometry_msgs.msg.Quaternion()):
             self.pose_stamped.pose.orientation = orientation
         else:
             self.pose_stamped.pose.orientation.x = orientation[0]
@@ -89,6 +104,7 @@ class CADObject(object):
         return self.pose_stamped.pose.orientation
 
     def translate(self,translation=[0,0,0]):
+        self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(translation) == type(geometry_msgs.msg.Vector3()):
             self.pose_stamped.pose.position.x += translation.x
             self.pose_stamped.pose.position.y += translation.y
@@ -99,6 +115,7 @@ class CADObject(object):
             self.pose_stamped.pose.position.z += translation[2]
 
     def rotate(self,angle=0,axis=[1,0,0]):
+        self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(axis) == type(geometry_msgs.msg.Vector3()):
             axis_vector = axis
             axis = [axis_vector.x,axis_vector.y,axis_vector.z]
@@ -112,6 +129,7 @@ class CADObject(object):
         return rotation
 
     def set_scale(self,scale=1):
+        self.scale = copy.deepcopy(self.scale)
         if type(scale) == type(geometry_msgs.msg.Vector3()):
             self.scale = scale
         elif (type(scale) == list) or (type(scale) == tuple):
@@ -126,3 +144,7 @@ class CADObject(object):
     def get_scale(self):
         return self.scale
 
+
+if __name__ == "__main__":
+    cad_object = CADObject()
+    print cad_object.pose_stamped
