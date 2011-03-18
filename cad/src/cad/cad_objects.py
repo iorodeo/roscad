@@ -23,10 +23,14 @@ import geometry_msgs
 import copy
 
 
+TAB_WIDTH = 4
+
 class CADProject(object):
     """Wrapper for a CAD project."""
 
     def __init__(self):
+        self.comment_syntax = '// '
+        self.comment = ''
         self.objlist = []
 
     def add(self, obj):
@@ -36,10 +40,35 @@ class CADProject(object):
         else:
             self.objlist.append(obj)
 
+    def cmd_str(self,tab_level=0):
+        return 'CADProject\n'
+
+    def __str__(self,tab_level=0):
+        tab_str = ' '*TAB_WIDTH*tab_level
+        comment = tab_str + self.comment_syntax + self.comment + '\n'
+        rtn_str = ''
+        for obj in self.objlist:
+            rtn_str = '{0}{1}{2}{3}'.format(tab_str,
+                                            rtn_str,
+                                            self.cmd_str(tab_level=tab_level),
+                                            obj)
+        return comment + rtn_str
+
+    # def __str__(self):
+    #     rtn_str = 'CADProject:\n'
+    #     for obj in self.objlist:
+    #         rtn_str = '%s%s\n\n'%(rtn_str,obj)
+    #         # print obj
+
+    #     return rtn_str
+
+
 class CADObject(object):
     """CAD object wrapper base class."""
 
     def __init__(self, pose_stamped=geometry_msgs.msg.PoseStamped(), scale=1):
+        self.comment_syntax = '// '
+        self.comment = ''
         self.pose_stamped = geometry_msgs.msg.PoseStamped()
         self.set_pose_stamped(pose_stamped)
 
@@ -58,6 +87,8 @@ class CADObject(object):
     def set_pose_stamped(self,pose_stamped=geometry_msgs.msg.PoseStamped()):
         if type(pose_stamped) == type(geometry_msgs.msg.PoseStamped()):
             self.pose_stamped = pose_stamped
+            if self.pose_stamped.pose.orientation.w == 0:
+                self.pose_stamped.pose.orientation.w = 1
 
     def get_pose_stamped(self):
         return self.pose_stamped
@@ -68,15 +99,17 @@ class CADObject(object):
             self.pose_stamped.header.frame_id = frame_id
 
     def get_frame_id(self):
-        return self.pose_stamped.header.frame_id
+        return copy.deepcopy(self.pose_stamped.header.frame_id)
 
     def set_pose(self,pose=geometry_msgs.msg.Pose()):
         self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(pose) == type(geometry_msgs.msg.Pose()):
             self.pose_stamped.pose = pose
+            if self.pose_stamped.pose.orientation.w == 0:
+                self.pose_stamped.pose.orientation.w = 1
 
     def get_pose(self):
-        return self.pose_stamped.pose
+        return copy.deepcopy(self.pose_stamped.pose)
 
     def set_position(self,position=geometry_msgs.msg.Point()):
         self.pose_stamped = copy.deepcopy(self.pose_stamped)
@@ -88,7 +121,11 @@ class CADObject(object):
             self.pose_stamped.pose.position.z = position[2]
 
     def get_position(self):
-        return self.pose_stamped.pose.position
+        return copy.deepcopy(self.pose_stamped.pose.position)
+
+    def get_position_list(self):
+        p = copy.deepcopy(self.pose_stamped.pose.position)
+        return [p.x,p.y,p.z]
 
     def set_orientation(self,orientation=geometry_msgs.msg.Quaternion()):
         self.pose_stamped = copy.deepcopy(self.pose_stamped)
@@ -99,32 +136,39 @@ class CADObject(object):
             self.pose_stamped.pose.orientation.y = orientation[1]
             self.pose_stamped.pose.orientation.z = orientation[2]
             self.pose_stamped.pose.orientation.w = orientation[3]
+        if self.pose_stamped.pose.orientation.w == 0:
+            self.pose_stamped.pose.orientation.w = 1
 
     def get_orientation(self):
-        return self.pose_stamped.pose.orientation
+        return copy.deepcopy(self.pose_stamped.pose.orientation)
+
+    def get_orientation_list(self):
+        o = copy.deepcopy(self.pose_stamped.pose.orientation)
+        return [o.x,o.y,o.z,o.w]
 
     def translate(self,translation=[0,0,0]):
-        self.pose_stamped = copy.deepcopy(self.pose_stamped)
+        position = self.get_position()
         if type(translation) == type(geometry_msgs.msg.Vector3()):
-            self.pose_stamped.pose.position.x += translation.x
-            self.pose_stamped.pose.position.y += translation.y
-            self.pose_stamped.pose.position.z += translation.z
+            position.x += translation.x
+            position.y += translation.y
+            position.z += translation.z
         else:
-            self.pose_stamped.pose.position.x += translation[0]
-            self.pose_stamped.pose.position.y += translation[1]
-            self.pose_stamped.pose.position.z += translation[2]
+            position.x += translation[0]
+            position.y += translation[1]
+            position.z += translation[2]
+        self.set_position(position)
 
     def rotate(self,angle=0,axis=[1,0,0]):
-        self.pose_stamped = copy.deepcopy(self.pose_stamped)
         if type(axis) == type(geometry_msgs.msg.Vector3()):
             axis_vector = axis
             axis = [axis_vector.x,axis_vector.y,axis_vector.z]
-        q_previous = self.pose_stamped.pose.orientation
+        q_previous = self.get_orientation_list()
         q_rotation = tf.transformations.quaternion_about_axis(angle, axis)
-        self.pose_stamped.pose.orientation = tf.transformations.quaternion_multiply(q_previous, q_rotation)
+        q_new = tf.transformations.quaternion_multiply(q_previous, q_rotation)
+        self.set_orientation(q_new)
 
     def get_rotation(self):
-        q = self.pose_stamped.pose.orientation
+        q = self.get_orientation_list()
         rotation = tf.transformations.euler_from_quaternion(q,'sxyz')
         return rotation
 
@@ -142,9 +186,52 @@ class CADObject(object):
             self.scale.z = scale
 
     def get_scale(self):
-        return self.scale
+        return copy.deepcopy(self.scale)
+
+    def cmd_str(self,tab_level=0):
+        return 'CADObect'
+
+    # def __str__(self):
+    #     rtn_str_header = '\nCADObject\n'
+    #     rtn_str = rtn_str_header + 'class = \n{class_:s}\npose_stamped = \n{pose_stamped:s}\nscale = \n{scale:s}\nprintable = \n{printable:s}\n'
+    #     rtn_str = rtn_str.format(class_ = str(self.__class__),
+    #                              pose_stamped = str(self.get_pose_stamped()),
+    #                              scale = str(self.get_scale()),
+    #                              printable = str(self.printable))
+
+    #     # rtn_str = '%s%s\n\n'%(rtn_str,obj)
+
+    #     try:
+    #         for obj in self.objlist:
+    #             rtn_str = '%s%s'%(rtn_str,obj)
+    #             # print obj
+    #     except:
+    #         pass
+
+    #     return rtn_str
+
+    def __str__(self,tab_level=0):
+        tab_str = ' '*TAB_WIDTH*tab_level
+        comment = tab_str + self.comment_syntax + self.comment + '\n'
+        rtn_str = 'class = \n{class_:s}\npose_stamped = \n{pose_stamped:s}\nscale = \n{scale:s}\nprintable = \n{printable:s}\n'
+        rtn_str = rtn_str.format(class_ = str(self.__class__),
+                                 pose_stamped = str(self.get_pose_stamped()),
+                                 scale = str(self.get_scale()),
+                                 printable = str(self.printable))
+        try:
+            for obj in self.objlist:
+                rtn_str = '{0}{1}{2}{3}'.format(tab_str,
+                                                rtn_str,
+                                                self.cmd_str(tab_level=tab_level),
+                                                obj)
+        except:
+            pass
+
+        return comment + rtn_str
 
 
 if __name__ == "__main__":
+    cad_project = CADProject()
     cad_object = CADObject()
-    print cad_object.pose_stamped
+    cad_project.add(cad_object)
+    print cad_project

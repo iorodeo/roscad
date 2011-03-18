@@ -1,0 +1,16 @@
+<package>
+  <description brief="cad_test_project">
+
+     cad_test_project
+
+  </description>
+  <author>Peter Polidoro</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cad_test_project</url>
+  <depend package="rospy"/>
+  <depend package="cad"/>
+
+</package>
+
+

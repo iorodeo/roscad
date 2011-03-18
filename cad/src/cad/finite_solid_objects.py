@@ -32,9 +32,9 @@ class _FiniteSolidObject(csg_objects.CSGObject):
         self.set_dimensions_(args,kwargs)
 
     def set_dimensions_(self,args,kwargs):
-        print args
-        print "len(args) = " + str(len(args))
-        print kwargs
+        # print args
+        # print "len(args) = " + str(len(args))
+        # print kwargs
         self.dimensions = self.dimensions_default
         if 0 < len(kwargs.keys()):
             if set(kwargs.keys()) == set(self.dimensions_default.keys()):
