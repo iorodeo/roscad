@@ -59,12 +59,20 @@ else:
             rotation = tf.transformations.euler_from_quaternion(q,'sxyz')
             return rotation
 
-        def __str__(self):
-            rtn_str_header = super(ROSObject, self).__str__()
-            rtn_str = 'rotation = \n{rotation:s}\n'
-            rtn_str = rtn_str.format(rotation = str(self.get_rotation()))
-            rtn_str = rtn_str_header + rtn_str
-            return rtn_str
+        def get_obj_str(self,depth=0):
+            obj_str_header = super(ROSObject, self).get_obj_str(depth)
+            obj_str = '{indent}rotation = \n{indent}{rotation:s}\n'
+            obj_str = obj_str.format(indent = self.indent_str*depth,
+                                     rotation = str(self.get_rotation()))
+            obj_str = obj_str_header + obj_str
+            return obj_str
+
+        # def __str__(self,depth=0):
+        #     rtn_str_header = super(ROSObject, self).__str__()
+        #     rtn_str = 'rotation = \n{rotation:s}\n'
+        #     rtn_str = rtn_str.format(rotation = str(self.get_rotation()))
+        #     rtn_str = rtn_str_header + rtn_str
+        #     return rtn_str
 
 
         # def __init__(self, pose_stamped=geometry_msgs.msg.PoseStamped(), scale=1):

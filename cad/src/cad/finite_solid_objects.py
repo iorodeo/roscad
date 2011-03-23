@@ -57,12 +57,20 @@ class _FiniteSolidObject(csg_objects.CSGObject):
     def get_dimensions(self):
         return copy.deepcopy(self.dimensions)
 
-    def __str__(self):
-        rtn_str_header = super(_FiniteSolidObject, self).__str__()
-        rtn_str = 'dimensions = \n{dimensions:s}\n'
-        rtn_str = rtn_str.format(dimensions = str(self.get_dimensions()))
-        rtn_str = rtn_str_header + rtn_str
-        return rtn_str
+    def get_obj_str(self,depth=0):
+        obj_str_header = super(_FiniteSolidObject, self).get_obj_str(depth)
+        obj_str = '{indent}dimensions = \n{indent}{dimensions:s}\n'
+        obj_str = obj_str.format(indent = self.indent_str*depth,
+                                 dimensions = str(self.get_dimensions()))
+        obj_str = obj_str_header + obj_str
+        return obj_str
+
+    # def __str__(self):
+    #     rtn_str_header = super(_FiniteSolidObject, self).__str__()
+    #     rtn_str = 'dimensions = \n{dimensions:s}\n'
+    #     rtn_str = rtn_str.format(dimensions = str(self.get_dimensions()))
+    #     rtn_str = rtn_str_header + rtn_str
+    #     return rtn_str
 
 class Box(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
@@ -135,5 +143,8 @@ if __name__ == "__main__":
     print box
     box2 = box.copy()
     box2.translate([10,0,0])
-    uni = box | box2
+    box2.rotate(0.3,[0,1,0])
+    sphere = Sphere(18)
+    uni = box | (box2 & sphere)
+    uni.translate([0,-14,9])
     print uni

@@ -22,6 +22,7 @@ class CADObject(object):
 
     def __init__(self, position=[0,0,0], orientation=[0,0,0,1], scale=1, exportable=False, modifiers={}):
         self.objlist = []
+
         self.set_position(position)
 
         self.set_orientation(orientation)
@@ -31,6 +32,8 @@ class CADObject(object):
         self.set_exportable(exportable)
 
         self.set_modifiers(modifiers)
+
+        self.indent_str = " "*4
 
     def add_obj(self, obj):
         """Add a CAD object to the object list."""
@@ -111,24 +114,25 @@ class CADObject(object):
             return copy.deepcopy(self.modifiers[str(key)])
 
 
-    def cmd_str(self,tab_level=0):
-        return 'CADObect'
-
-    def __str__(self):
-        rtn_str_header = '\nCADObject\n'
-        rtn_str = 'class = \n{class_:s}\nposition = \n{position:s}\norientation = \n{orientation:s}\nscale = \n{scale:s}\nexportable = \n{exportable:s}\nmodifiers = \n{modifiers:s}\n'
-        rtn_str = rtn_str.format(class_ = str(self.__class__),
+    def get_obj_str(self,depth=0):
+        obj_str = '{indent}class = \n{indent}{class_:s}\n{indent}position = \n{indent}{position:s}\n{indent}orientation = \n{indent}{orientation:s}\n{indent}scale = \n{indent}{scale:s}\n{indent}exportable = \n{indent}{exportable:s}\n{indent}modifiers = \n{indent}{modifiers:s}\n'
+        obj_str = obj_str.format(indent = self.indent_str*depth,
+                                 class_ = str(self.__class__),
                                  position = str(self.get_position()),
                                  orientation = str(self.get_orientation()),
                                  scale = str(self.get_scale()),
                                  exportable = str(self.get_exportable()),
                                  modifiers = str(self.get_modifiers()))
+        return obj_str
 
-        rtn_str = rtn_str_header + rtn_str
+    def __str__(self,depth=0):
+
+        rtn_str = self.get_obj_str(depth)
 
         try:
             for obj in self.objlist:
-                rtn_str = '%s%s'%(rtn_str,obj)
+                rtn_str = '{rtn_str}{obj}\n'.format(rtn_str = rtn_str,
+                                                    obj = obj.__str__(depth+1))
         except:
             pass
 
