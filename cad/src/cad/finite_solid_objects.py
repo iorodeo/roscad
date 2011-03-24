@@ -138,9 +138,9 @@ if __name__ == "__main__":
     # print cylinder
     box = Box([1,2,3])
     box.rotate(1.2,[1,0,0])
-    print box
+    # print box
     box.rotate(-0.3,[0,1,0])
-    print box
+    # print box
     box2 = box.copy()
     box2.translate([10,0,0])
     box2.rotate(0.3,[0,1,0])
@@ -148,3 +148,4 @@ if __name__ == "__main__":
     uni = box | (box2 & sphere)
     uni.translate([0,-14,9])
     print uni
+    uni.export()

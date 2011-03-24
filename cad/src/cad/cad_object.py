@@ -15,13 +15,17 @@ limitations under the License.
 """
 from __future__ import division
 import copy
+import math
+import re
+
+import export_maps
 
 
 class CADObject(object):
     """CAD object wrapper base class."""
 
     def __init__(self, position=[0,0,0], orientation=[0,0,0,1], scale=1, exportable=False, modifiers={}):
-        self.objlist = []
+        self.obj_list = []
 
         self.set_position(position)
 
@@ -38,9 +42,9 @@ class CADObject(object):
     def add_obj(self, obj):
         """Add a CAD object to the object list."""
         if type(obj) == list:
-            self.objlist.extend(obj)
+            self.obj_list.extend(obj)
         else:
-            self.objlist.append(obj)
+            self.obj_list.append(obj)
 
     def copy(self):
         return copy.deepcopy(self)
@@ -113,11 +117,15 @@ class CADObject(object):
         else:
             return copy.deepcopy(self.modifiers[str(key)])
 
+    def get_class_name(self):
+        class_str = str(type(self))
+        m = re.match(r"<.*[.][_]?(?P<classname>.*)[_]?'>",class_str)
+        return m.group('classname')
 
     def get_obj_str(self,depth=0):
-        obj_str = '{indent}class = \n{indent}{class_:s}\n{indent}position = \n{indent}{position:s}\n{indent}orientation = \n{indent}{orientation:s}\n{indent}scale = \n{indent}{scale:s}\n{indent}exportable = \n{indent}{exportable:s}\n{indent}modifiers = \n{indent}{modifiers:s}\n'
+        obj_str = '{indent}class name = \n{indent}{classname:s}\n{indent}position = \n{indent}{position:s}\n{indent}orientation = \n{indent}{orientation:s}\n{indent}scale = \n{indent}{scale:s}\n{indent}exportable = \n{indent}{exportable:s}\n{indent}modifiers = \n{indent}{modifiers:s}\n'
         obj_str = obj_str.format(indent = self.indent_str*depth,
-                                 class_ = str(self.__class__),
+                                 classname = str(self.get_class_name()),
                                  position = str(self.get_position()),
                                  orientation = str(self.get_orientation()),
                                  scale = str(self.get_scale()),
@@ -126,11 +134,10 @@ class CADObject(object):
         return obj_str
 
     def __str__(self,depth=0):
-
         rtn_str = self.get_obj_str(depth)
 
         try:
-            for obj in self.objlist:
+            for obj in self.obj_list:
                 rtn_str = '{rtn_str}{obj}\n'.format(rtn_str = rtn_str,
                                                     obj = obj.__str__(depth+1))
         except:
@@ -138,11 +145,49 @@ class CADObject(object):
 
         return rtn_str
 
-    def export(self,depth=0):
-        pass
+    def get_export_obj_str(self):
+        class_name = self.get_class_name()
+        export_obj_str = self.export_map.get_obj_str(class_name)
+        return export_obj_str
+
+    def get_export_obj_header_str(self,depth):
+        export_obj_str = self.get_export_obj_str()
+        export_obj_header_str = self.export_map.get_obj_header_str()
+        export_obj_header_str = export_obj_header_str.format(indent = self.export_map.indent_str*depth,
+                                                             block_open = self.export_map.block_open_str,
+                                                             position = self.position,
+                                                             angle = [a*(180/math.pi) for a in self.get_rotation()],
+                                                             scale = self.scale,
+                                                             obj = export_obj_str)
+        return export_obj_header_str
+
+    def export(self,filename="export.txt",type=None,depth=0):
+        self.export_map = export_maps.SCADExportMap()
+        if self.exportable == True:
+            export_file_header_str = self.export_map.get_file_header_str(filename,depth)
+            export_obj_header_str = self.get_export_obj_header_str(depth)
+            export_str = export_file_header_str + export_obj_header_str
+
+        try:
+            for obj in self.obj_list:
+                export_str = '{export_str}{obj}\n'.format(export_str = export_str,
+                                                          obj = obj.export(depth=(depth+1)))
+        except:
+            pass
+
+        export_obj_footer_str = self.export_map.get_obj_footer_str(depth)
+        export_str = export_str + export_obj_footer_str
+
+        if depth == 0:
+            fid = open(filename, 'w')
+            fid.write('{export_str}'.format(export_str = export_str))
+            fid.close()
+        else:
+            return export_str
 
 if __name__ == "__main__":
     cad_project = CADObject()
     cad_object = CADObject()
     cad_project.add_obj(cad_object)
     print cad_project
+    cad_project.export()
