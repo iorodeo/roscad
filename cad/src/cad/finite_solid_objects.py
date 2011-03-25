@@ -15,6 +15,7 @@ limitations under the License.
 """
 import copy
 import csg_objects
+import random
 
 
 class _FiniteSolidObject(csg_objects.CSGObject):
@@ -22,6 +23,7 @@ class _FiniteSolidObject(csg_objects.CSGObject):
         super(_FiniteSolidObject, self).__init__()
         self.dimensions = {}
         self.dimensions_default = {}
+        self.set_color([random.random(),random.random(),random.random(),1])
 
     def set_dimensions(self,*args,**kwargs):
         self.set_dimensions_(args,kwargs)
@@ -79,12 +81,26 @@ class Box(_FiniteSolidObject):
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
 
+    def get_export_obj_str(self):
+        dimensions = self.get_dimensions()
+        export_obj_str = super(Box,self).get_export_obj_str()
+        export_obj_str = export_obj_str.format(x = dimensions['x'],
+                                               y = dimensions['y'],
+                                               z = dimensions['z'])
+        return export_obj_str
+
 class Sphere(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Sphere, self).__init__()
         self.dimensions_default = {'radius': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
+
+    def get_export_obj_str(self):
+        dimensions = self.get_dimensions()
+        export_obj_str = super(Sphere,self).get_export_obj_str()
+        export_obj_str = export_obj_str.format(radius = dimensions['radius'])
+        return export_obj_str
 
 class Cylinder(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
@@ -93,6 +109,27 @@ class Cylinder(_FiniteSolidObject):
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
 
+    def get_export_obj_str(self):
+        dimensions = self.get_dimensions()
+        export_obj_str = super(Cylinder,self).get_export_obj_str()
+        export_obj_str = export_obj_str.format(z = dimensions['z'],
+                                               radius = dimensions['radius'])
+        return export_obj_str
+
+class Cone(_FiniteSolidObject):
+    def __init__(self,*args,**kwargs):
+        super(Cone, self).__init__()
+        self.dimensions_default = {'z': 1, 'radius_pos': 1, 'radius_neg': 0.1}
+        self.set_dimensions_(args,kwargs)
+        self.set_exportable(True)
+
+    def get_export_obj_str(self):
+        dimensions = self.get_dimensions()
+        export_obj_str = super(Cone,self).get_export_obj_str()
+        export_obj_str = export_obj_str.format(z = dimensions['z'],
+                                               radius_pos = dimensions['radius_pos'],
+                                               radius_neg = dimensions['radius_neg'])
+        return export_obj_str
 
 if __name__ == "__main__":
     # box = Box([1,2,3])
@@ -136,16 +173,49 @@ if __name__ == "__main__":
     # print cylinder
     # cylinder = Cylinder({'z': 42, 'radius': 52})
     # print cylinder
-    box = Box([1,2,3])
-    box.rotate(1.2,[1,0,0])
+    # box = Box([1,2,3])
+    # box.rotate(1.2,[1,0,0])
     # print box
-    box.rotate(-0.3,[0,1,0])
+    # box.rotate(-0.3,[0,1,0])
     # print box
-    box2 = box.copy()
-    box2.translate([10,0,0])
-    box2.rotate(0.3,[0,1,0])
-    sphere = Sphere(18)
-    uni = box | (box2 & sphere)
-    uni.translate([0,-14,9])
-    print uni
+    # box2 = box.copy()
+    # box2.translate([10,0,0])
+    # box2.rotate(0.3,[0,1,0])
+    # sphere = Sphere(2)
+    # uni = box | (box2 & sphere)
+    # uni.translate([0,-14,9])
+    # print uni
+    # uni.export()
+
+    import math
+    pi = math.pi
+
+    sphere1 = Sphere(2)
+    sphere2 = sphere1.copy()
+    sphere1.translate([0,0,5])
+    sphere2.translate([0,0,-5])
+    cylinder = Cylinder(z=10,radius=1)
+    dumbbell = (sphere1 | sphere2) | cylinder
+    # print dumbbell
+    # dumbbell.export()
+    box1 = Box(10,10,3)
+    box1.rotate(1,[0,0,1])
+    box1.rotate(1,[1,0,0])
+    uni = dumbbell | box1
+
+    cylinder = Cylinder(z=20,radius=0.5)
+    cone = Cone(z=4,radius_pos=0.1,radius_neg=1)
+    cone.translate([0,0,10])
+    arrow = cylinder | cone
+    arrow.translate([0,0,10])
+
+    arrow_x = arrow.copy()
+    arrow_y = arrow.copy()
+    arrow_z = arrow.copy()
+    arrow_x.rotate(pi/2,[0,1,0])
+    arrow_x.set_color([1,0,0])
+    arrow_y.rotate(pi/2,[1,0,0])
+    arrow_y.set_color([0,1,0])
+    arrow_z.set_color([0,0,1])
+    uni = uni | arrow_x | arrow_y | arrow_z
     uni.export()

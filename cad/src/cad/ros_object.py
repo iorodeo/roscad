@@ -15,6 +15,7 @@ limitations under the License.
 """
 from __future__ import division
 import os
+import numpy
 import cad_object
 
 # Check to see if ROS is installed
@@ -45,6 +46,22 @@ else:
             super(ROSObject, self).__init__(position,orientation,scale,exportable,modifiers)
 
         def rotate(self,angle=0,axis=[1,0,0]):
+            axis = copy.deepcopy(axis)
+            if type(axis) == type(geometry_msgs.msg.Vector3()):
+                axis_vector = axis
+                axis = [axis_vector.x,axis_vector.y,axis_vector.z]
+            q_previous = self.get_orientation()
+            q_rotation = tf.transformations.quaternion_about_axis(angle, axis)
+            R = tf.transformations.quaternion_matrix(q_rotation)
+            p_previous = self.get_position()
+            p_previous.append(1)
+            p_new = numpy.dot(R,p_previous)
+            p_new = list(p_new[0:-1])
+            q_new = tf.transformations.quaternion_multiply(q_previous, q_rotation)
+            self.set_orientation(q_new)
+            self.set_position(p_new)
+
+        def set_rotation(self,angle=0,axis=[1,0,0]):
             axis = copy.deepcopy(axis)
             if type(axis) == type(geometry_msgs.msg.Vector3()):
                 axis_vector = axis

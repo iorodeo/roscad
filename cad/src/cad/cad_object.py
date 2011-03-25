@@ -24,7 +24,7 @@ import export_maps
 class CADObject(object):
     """CAD object wrapper base class."""
 
-    def __init__(self, position=[0,0,0], orientation=[0,0,0,1], scale=1, exportable=False, modifiers={}):
+    def __init__(self, position=[0,0,0], orientation=[0,0,0,1], scale=1, exportable=False, modifiers={}, export_file_parameters={}):
         self.obj_list = []
 
         self.set_position(position)
@@ -37,7 +37,23 @@ class CADObject(object):
 
         self.set_modifiers(modifiers)
 
+        self.set_export_file_parameters(export_file_parameters)
+
         self.indent_str = " "*4
+
+    def set_color(self,color):
+        color = copy.deepcopy(color)
+        if len(color) == 4:
+            self.set_modifier('color', color)
+        elif len(color) == 3:
+            color.append(1)
+            self.set_modifier('color', color)
+
+    def get_color(self):
+        if 'color' not in self.modifiers:
+            return []
+        else:
+            return copy.deepcopy(self.get_modifier('color'))
 
     def add_obj(self, obj):
         """Add a CAD object to the object list."""
@@ -105,17 +121,34 @@ class CADObject(object):
     def get_modifiers(self):
         return copy.deepcopy(self.modifiers)
 
-    def add_modifier(self,key,value):
-        if type(key) == str:
-            self.modifiers[key] = copy.deepcopy(value)
-        else:
-            self.modifiers[str(key)] = copy.deepcopy(value)
+    def set_modifier(self,key,value):
+        if type(key) != str:
+            key = str(key)
+        self.modifiers[key] = copy.deepcopy(value)
 
     def get_modifier(self,key):
+        if type(key) != str:
+            key = str(key)
+        return copy.deepcopy(self.modifiers[key])
+
+    def set_export_file_parameters(self,export_file_parameters={}):
+        if type(export_file_parameters) == dict:
+            self.export_file_parameters = copy.deepcopy(export_file_parameters)
+
+    def get_export_file_parameters(self):
+        return copy.deepcopy(self.export_file_parameters)
+
+    def add_export_file_parameter(self,key,value):
         if type(key) == str:
-            return copy.deepcopy(self.modifiers[key])
+            self.export_file_parameters[key] = copy.deepcopy(value)
         else:
-            return copy.deepcopy(self.modifiers[str(key)])
+            self.export_file_parameters[str(key)] = copy.deepcopy(value)
+
+    def get_export_file_parameter(self,key):
+        if type(key) == str:
+            return copy.deepcopy(self.export_file_parameters[key])
+        else:
+            return copy.deepcopy(self.export_file_parameters[str(key)])
 
     def get_class_name(self):
         class_str = str(type(self))
@@ -146,41 +179,54 @@ class CADObject(object):
         return rtn_str
 
     def get_export_obj_str(self):
-        class_name = self.get_class_name()
-        export_obj_str = self.export_map.get_obj_str(class_name)
+        export_obj_str = self.export_map.get_obj_str(self.get_class_name())
         return export_obj_str
 
     def get_export_obj_header_str(self,depth):
         export_obj_str = self.get_export_obj_str()
-        export_obj_header_str = self.export_map.get_obj_header_str()
-        export_obj_header_str = export_obj_header_str.format(indent = self.export_map.indent_str*depth,
-                                                             block_open = self.export_map.block_open_str,
-                                                             position = self.position,
-                                                             angle = [a*(180/math.pi) for a in self.get_rotation()],
-                                                             scale = self.scale,
-                                                             obj = export_obj_str)
+        if export_obj_str != "":
+            export_obj_header_str = self.export_map.get_obj_header_str(depth = depth,
+                                                                       position = self.get_position(),
+                                                                       rotation = self.get_rotation(),
+                                                                       scale = self.get_scale(),
+                                                                       color = self.get_color())
+            export_obj_header_str = export_obj_header_str.format(block_open = '{block_open}',
+                                                                 block_close = '{block_close}',
+                                                                 obj = export_obj_str)
+        else:
+            export_obj_header_str = ""
         return export_obj_header_str
 
-    def export(self,filename="export.txt",type=None,depth=0):
-        self.export_map = export_maps.SCADExportMap()
-        if self.exportable == True:
-            export_file_header_str = self.export_map.get_file_header_str(filename,depth)
-            export_obj_header_str = self.get_export_obj_header_str(depth)
-            export_str = export_file_header_str + export_obj_header_str
+    def export(self,filename="export.scad",type=None,depth=0):
+        self.export_map = export_maps.SCADExportMap(self.export_file_parameters)
+        if depth == 0:
+            export_str = self.export_map.get_file_header_str(filename)
+        else:
+            export_str = ""
+        export_obj_header_str = self.get_export_obj_header_str(depth)
+        if export_obj_header_str != "":
+            export_str += export_obj_header_str
 
-        try:
-            for obj in self.obj_list:
-                export_str = '{export_str}{obj}\n'.format(export_str = export_str,
-                                                          obj = obj.export(depth=(depth+1)))
-        except:
-            pass
+            if 0 < len(self.obj_list):
+                for obj in self.obj_list:
+                    export_str = '{export_str}{obj}'.format(export_str = export_str,
+                                                            obj = obj.export(depth=(depth+1)),
+                                                            block_open = '{block_open}',
+                                                            block_close = '{block_close}')
 
-        export_obj_footer_str = self.export_map.get_obj_footer_str(depth)
-        export_str = export_str + export_obj_footer_str
+            export_obj_footer_str = self.export_map.get_obj_footer_str(class_name = self.get_class_name(),
+                                                                       depth = depth,
+                                                                       position = self.get_position(),
+                                                                       rotation = self.get_rotation(),
+                                                                       scale = self.get_scale(),
+                                                                       color = self.get_color())
+            export_str = export_str + export_obj_footer_str
 
         if depth == 0:
             fid = open(filename, 'w')
-            fid.write('{export_str}'.format(export_str = export_str))
+            export_str = export_str.format(block_open = self.export_map.block_open_str,
+                                           block_close = self.export_map.block_close_str)
+            fid.write(export_str)
             fid.close()
         else:
             return export_str
