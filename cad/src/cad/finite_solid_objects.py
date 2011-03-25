@@ -15,7 +15,6 @@ limitations under the License.
 """
 import copy
 import csg_objects
-import random
 
 
 class _FiniteSolidObject(csg_objects.CSGObject):
@@ -23,7 +22,7 @@ class _FiniteSolidObject(csg_objects.CSGObject):
         super(_FiniteSolidObject, self).__init__()
         self.dimensions = {}
         self.dimensions_default = {}
-        self.set_color([random.random(),random.random(),random.random(),1])
+        self.set_color()
 
     def set_dimensions(self,*args,**kwargs):
         self.set_dimensions_(args,kwargs)
@@ -62,17 +61,10 @@ class _FiniteSolidObject(csg_objects.CSGObject):
     def get_obj_str(self,depth=0):
         obj_str_header = super(_FiniteSolidObject, self).get_obj_str(depth)
         obj_str = '{indent}dimensions = \n{indent}{dimensions:s}\n'
-        obj_str = obj_str.format(indent = self.indent_str*depth,
+        obj_str = obj_str.format(indent = self.get_export_parameter('indent_str')*depth,
                                  dimensions = str(self.get_dimensions()))
         obj_str = obj_str_header + obj_str
         return obj_str
-
-    # def __str__(self):
-    #     rtn_str_header = super(_FiniteSolidObject, self).__str__()
-    #     rtn_str = 'dimensions = \n{dimensions:s}\n'
-    #     rtn_str = rtn_str.format(dimensions = str(self.get_dimensions()))
-    #     rtn_str = rtn_str_header + rtn_str
-    #     return rtn_str
 
 class Box(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
@@ -92,101 +84,46 @@ class Box(_FiniteSolidObject):
 class Sphere(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Sphere, self).__init__()
-        self.dimensions_default = {'radius': 1}
+        self.dimensions_default = {'r': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
         export_obj_str = super(Sphere,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(radius = dimensions['radius'])
+        export_obj_str = export_obj_str.format(r = dimensions['r'])
         return export_obj_str
 
 class Cylinder(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cylinder, self).__init__()
-        self.dimensions_default = {'z': 1, 'radius': 1}
+        self.dimensions_default = {'l': 1, 'r': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
         export_obj_str = super(Cylinder,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(z = dimensions['z'],
-                                               radius = dimensions['radius'])
+        export_obj_str = export_obj_str.format(l = dimensions['l'],
+                                               r = dimensions['r'])
         return export_obj_str
 
 class Cone(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cone, self).__init__()
-        self.dimensions_default = {'z': 1, 'radius_pos': 1, 'radius_neg': 0.1}
+        self.dimensions_default = {'l': 1, 'r_pos': 1, 'r_neg': 0.1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
         export_obj_str = super(Cone,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(z = dimensions['z'],
-                                               radius_pos = dimensions['radius_pos'],
-                                               radius_neg = dimensions['radius_neg'])
+        export_obj_str = export_obj_str.format(l = dimensions['l'],
+                                               r_pos = dimensions['r_pos'],
+                                               r_neg = dimensions['r_neg'])
         return export_obj_str
 
 if __name__ == "__main__":
-    # box = Box([1,2,3])
-    # print box
-    # sphere = Sphere()
-    # print sphere
-    # diff = box - sphere
-    # print diff
-    # box.set_dimensions(5)
-    # sphere.translate([0.5,0,0])
-    # uni = box | sphere
-    # print uni
-    # print box
-    # print sphere
-    # print diff
-
-    # sphere2 = sphere.copy()
-    # sphere2.translate([-5,13,1])
-    # uni2 = uni | sphere2
-    # print uni2
-    # box = Box(4)
-    # print box
-    # box = Box(4,2,3)
-    # print box
-    # box = Box(x=14,y=12,z=13)
-    # print box
-    # box = Box([100])
-    # print box
-    # box = Box([100,200,300])
-    # print box
-    # box = Box({'x': 42, 'y': 52, 'z': 73})
-    # print box
-
-    # cylinder = Cylinder(1234)
-    # print cylinder
-    # cylinder = Cylinder([1000])
-    # print cylinder
-    # cylinder = Cylinder([100,200])
-    # print cylinder
-    # cylinder = Cylinder(z=22,radius=5000)
-    # print cylinder
-    # cylinder = Cylinder({'z': 42, 'radius': 52})
-    # print cylinder
-    # box = Box([1,2,3])
-    # box.rotate(1.2,[1,0,0])
-    # print box
-    # box.rotate(-0.3,[0,1,0])
-    # print box
-    # box2 = box.copy()
-    # box2.translate([10,0,0])
-    # box2.rotate(0.3,[0,1,0])
-    # sphere = Sphere(2)
-    # uni = box | (box2 & sphere)
-    # uni.translate([0,-14,9])
-    # print uni
-    # uni.export()
-
     import math
     pi = math.pi
 
@@ -196,11 +133,14 @@ if __name__ == "__main__":
     sphere2.translate([0,0,-5])
     cylinder = Cylinder(z=10,radius=1)
     dumbbell = (sphere1 | sphere2) | cylinder
+    dumbbell.rotate(pi/4,[1,0,0])
+    dumbbell.set_color([1,1,0],recursive=True)
     # print dumbbell
     # dumbbell.export()
     box1 = Box(10,10,3)
+    box1.translate([30,0,0])
     box1.rotate(1,[0,0,1])
-    box1.rotate(1,[1,0,0])
+    box1.rotate(0.25,[1,0,0])
     uni = dumbbell | box1
 
     cylinder = Cylinder(z=20,radius=0.5)
@@ -213,9 +153,9 @@ if __name__ == "__main__":
     arrow_y = arrow.copy()
     arrow_z = arrow.copy()
     arrow_x.rotate(pi/2,[0,1,0])
-    arrow_x.set_color([1,0,0])
-    arrow_y.rotate(pi/2,[1,0,0])
-    arrow_y.set_color([0,1,0])
-    arrow_z.set_color([0,0,1])
+    arrow_x.set_color([1,0,0],recursive=True)
+    arrow_y.rotate(-pi/2,[1,0,0])
+    arrow_y.set_color([0,1,0],recursive=True)
+    arrow_z.set_color([0,0,1],recursive=True)
     uni = uni | arrow_x | arrow_y | arrow_z
     uni.export()

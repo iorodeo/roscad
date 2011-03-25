@@ -46,11 +46,11 @@ class SCADExportMap(object):
                                      'footer': '{block_close}'},
                            'Box': {'header': 'cube(size = [{x:0.5f},{y:0.5f},{z:0.5f}], center = true);',
                                    'footer': ''},
-                           'Sphere': {'header': 'sphere(r = {radius:0.5f}, center = true);',
+                           'Sphere': {'header': 'sphere(r = {r:0.5f}, center = true);',
                                       'footer': ''},
-                           'Cylinder': {'header': 'cylinder(h = {z:0.5f}, r = {radius:0.5f}, center = true);',
+                           'Cylinder': {'header': 'cylinder(h = {l:0.5f}, r = {r:0.5f}, center = true);',
                                         'footer': ''},
-                           'Cone': {'header': 'cylinder(h = {z:0.5f}, r1 = {radius_neg:0.5f}, r2 = {radius_pos:0.5f}, center = true);',
+                           'Cone': {'header': 'cylinder(h = {l:0.5f}, r1 = {r_neg:0.5f}, r2 = {r_pos:0.5f}, center = true);',
                                     'footer': ''}}
 
     def get_file_header_str(self,filename):
@@ -93,7 +93,11 @@ class SCADExportMap(object):
             obj_str = ""
         return obj_str
 
-    def get_obj_header_str(self,depth,position,rotation,scale,color):
+    def get_obj_header_str(self,depth,position,rotation,scale,modifiers):
+        if 'color' in modifiers:
+            color = modifiers['color']
+        else:
+            color = []
         angles = [a*(180/math.pi) for a in rotation]
         obj_str = "{indent}{translate}{rotate}{scale}{color}"
         if not numpy.allclose(position,[0,0,0]):
@@ -126,7 +130,11 @@ class SCADExportMap(object):
         obj_str += '{obj}\n'
         return obj_str
 
-    def get_obj_footer_str(self,class_name,depth,position,rotation,scale,color):
+    def get_obj_footer_str(self,class_name,depth,position,rotation,scale,modifiers):
+        if 'color' in modifiers:
+            color = modifiers['color']
+        else:
+            color = []
         angles = [a*(180/math.pi) for a in rotation],
         obj_footer_str = "{indent}{translate}{rotate}{scale}{color}{obj_footer}\n"
         if not numpy.allclose(position,[0,0,0]):
