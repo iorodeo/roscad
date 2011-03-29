@@ -13,19 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import cad_object
-import finite_solid_objects as fso
+from __future__ import division
+import scad
 
-class SCADObject(cad_object.CADObject):
-    def __init__(self):
-        super(CADObject, self).__init__()
-        self.dimensions = {}
-        self.dimensions_default = {}
-
-    def set_dimensions(self,*args,**kwargs):
-        self.set_dimensions_(args,kwargs)
-
+export_maps = {'scad': scad.SCADExportMap,
+               'povray': povray.POVRAYExportMap}
 
 
 if __name__ == "__main__":
-    
+    scad_export_map = maps['scad']()

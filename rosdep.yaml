@@ -36,3 +36,7 @@ OpenSCAD:
 povray:
   ubuntu: |
     povray povray-doc povray-examples
+
+shapely:
+  ubuntu: |
+    python-shapely

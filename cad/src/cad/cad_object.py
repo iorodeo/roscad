@@ -19,7 +19,7 @@ import math
 import re
 import random
 
-import export_maps
+from export.export import export_maps
 
 
 class CADObject(object):
@@ -199,7 +199,8 @@ class CADObject(object):
         return export_obj_header_str
 
     def export(self,filename="export.scad",type=None,depth=0):
-        self.export_map = export_maps.SCADExportMap(self.export_parameters)
+        # self.export_map = export_maps.export_maps.SCADExportMap(self.export_parameters)
+        self.export_map = export_maps['scad'](self.export_parameters)
         if depth == 0:
             export_str = self.export_map.get_file_header_str(filename)
         else:
