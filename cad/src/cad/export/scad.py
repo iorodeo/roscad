@@ -132,7 +132,7 @@ class SCADExportMap(object):
         obj_str += '{obj}\n'
         return obj_str
 
-    def get_obj_footer_str(self,class_name,depth,position,rotation,scale,modifiers):
+    def get_obj_footer_str(self,primative,depth,position,rotation,scale,modifiers):
         if 'color' in modifiers:
             color = modifiers['color']
         else:
@@ -156,10 +156,10 @@ class SCADExportMap(object):
         else:
             color_str = ""
 
-        try:
-            footer_str = self.object_map[class_name]['footer']
-        except:
-            footer_str = ""
+        footer_str = ""
+        if primative != '':
+            if primative in self.object_map:
+                footer_str = self.object_map[primative]['footer']
 
         obj_footer_str = obj_footer_str.format(indent = self.indent_str*depth,
                                                translate = translate_str,

@@ -21,28 +21,40 @@ class CSGObject(ros_object.ROSObject):
         super(CSGObject, self).__init__()
 
     def union(self,obj):
-        return Union([self,obj])
+        union = Union(self)
+        union.add_obj(obj)
+        return union
+        # return Union([self,obj])
 
     # |
     def __or__(self, obj):
         return self.union(obj)
 
     def intersection(self,obj):
-        return Intersection([self,obj])
+        intersection = Intersection(self)
+        intersection.add_obj(obj)
+        return intersection
+        # return Intersection([self,obj])
 
     # &
     def __and__(self, obj):
         return self.intersection(obj)
 
     def difference(self,obj):
-        return Difference([self,obj])
+        difference = Difference(self)
+        difference.add_obj(obj)
+        return difference
+        # return Difference([self,obj])
 
     # -
     def __sub__(self, obj):
         return self.difference(obj)
 
     def merge(self,obj):
-        return Merge([self,obj])
+        merge = Merge(self)
+        merge.add_obj(obj)
+        return merge
+        # return Merge([self,obj])
 
     # ^
     def __xor__(self, obj):

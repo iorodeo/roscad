@@ -61,7 +61,7 @@ class CADObject(object):
         self.add_obj(obj_list)
 
     def get_obj_list(self):
-        return copy.deepcopy(self.obj_list)
+        return self.obj_list
 
     def copy(self):
         return copy.deepcopy(self)
@@ -73,6 +73,7 @@ class CADObject(object):
         if len(color) == 3:
             color.append(1)
         self.set_modifier('color', color)
+        # print "Setting color of " + self.get_class_name() + " to " + str(color)
         if recursive:
             for obj in self.get_obj_list():
                 obj.set_color(color,recursive=True)
@@ -233,7 +234,7 @@ class CADObject(object):
                                                             block_open = '{block_open}',
                                                             block_close = '{block_close}')
 
-            export_obj_footer_str = self.export_map.get_obj_footer_str(class_name = self.get_class_name(),
+            export_obj_footer_str = self.export_map.get_obj_footer_str(primative = self.get_primative(),
                                                                        depth = depth,
                                                                        position = self.get_position(),
                                                                        rotation = self.get_rotation(),

@@ -9,7 +9,7 @@ import copy
 
 # RAB air bearing parameters
 # Data sheet parameter
-RAB4_params = {                            # --------------------
+RAB4_PARAMS = {                            # --------------------
         'slide_width'          : 4.0,      # A
         'slide_height'         : 1.5,      # B
         'carriage_length'      : 5.0,      # C
@@ -26,7 +26,7 @@ RAB4_params = {                            # --------------------
         }
 
 # Data sheet parameter
-RAB6_params = {                            # --------------------
+RAB6_PARAMS = {                            # --------------------
         'slide_width'          : 6.0,      # A
         'slide_height'         : 1.75,     # B
         'carriage_length'      : 7.0,      # C
@@ -43,7 +43,7 @@ RAB6_params = {                            # --------------------
         }
 
 # Data sheet parameter
-RAB10_params = {                           # --------------------
+RAB10_PARAMS = {                           # --------------------
         'slide_width'          : 10.0,     # A
         'slide_height'         : 3.0,      # B
         'carriage_length'      : 12.0,     # C
@@ -59,21 +59,21 @@ RAB10_params = {                           # --------------------
         'slide_tolerance'      : 0.005,
         }
 
-bearing_params = {
-        'RAB4'  : RAB4_params,
-        'RAB6'  : RAB6_params,
-        'RAB10' : RAB10_params,
+BEARING_PARAMS = {
+        'RAB4'  : RAB4_PARAMS,
+        'RAB6'  : RAB6_PARAMS,
+        'RAB10' : RAB10_PARAMS,
         }
 
-class AirBearing(csg.Union):
+class RAB(csg.Union):
     """
     Creates a model of the RAB air bearings.
     """
 
-    def __init__(self,bearing_type,slide_travel,slide_color=None,carriage_color=None):
-        super(AirBearing, self).__init__()
+    def __init__(self,bearing_type,slide_travel,slide_color=[0.5,0.5,0.5],carriage_color=[0.5,0.5,0.5]):
+        super(RAB, self).__init__()
         self.bearing_type = bearing_type
-        self.params = bearing_params[bearing_type]
+        self.params = BEARING_PARAMS[bearing_type]
         self.params['bearing_slide_travel'] = slide_travel
         self.slide_color = slide_color
         self.carriage_color = carriage_color
@@ -111,9 +111,7 @@ class AirBearing(csg.Union):
                 hole_list.append(hole)
         # Remove hole material
         slide -= hole_list
-        # Add color to slide if available
-        if not self.slide_color is None:
-            slide.set_color(self.slide_color)
+        slide.set_color(self.slide_color,recursive=True)
         self.slide = slide
 
     def __make_carriage(self):
@@ -144,22 +142,20 @@ class AirBearing(csg.Union):
                 hole.translate([xpos,ypos,0])
                 hole_list.append(hole)
         # Remove hole material
-        print hole_list
+        # print hole_list
         carriage -= hole_list
-        # Add color to carriage is available
-        if not self.carriage_color is None:
-            carriage.set_color(self.carriage_color)
+        carriage.set_color(self.carriage_color,recursive=True)
         self.carriage = carriage
 
-    def __make_slide_travel(self,color=[0,0,1,1]):
+    def __make_slide_travel(self,color=[0.25,0.25,0.25]):
         """
         Make a colored region showing the slides travel.
         """
-        length = self.params['carriage_width'] + self.params['bearing_slide_travel']
+        length = self.params['carriage_length'] + self.params['bearing_slide_travel']
         width = self.params['slide_width'] + self.params['slide_tolerance']
         height = self.params['slide_height'] +  self.params['slide_tolerance']
         slide_travel = fso.Box(x=length,y=width,z=height)
-        slide_travel.set_color(color)
+        slide_travel.set_color(color,recursive=True)
         self.slide_travel = slide_travel
 
 
@@ -169,8 +165,9 @@ if __name__ == '__main__':
     bearing_type = 'RAB6'
     slide_travel = 4
 
-    bearing = AirBearing(bearing_type, slide_travel, slide_color=[0.3,0.3,1,1],carriage_color=[1.0,0.3,0.3,1])
-    obj_list = bearing.get_obj_list()
-    for obj in obj_list:
-        print obj.get_obj_list()
+    bearing = RAB(bearing_type, slide_travel)
+    # obj_list = bearing.get_obj_list()
+    # for obj in obj_list:
+    #     print obj.get_obj_list()
+    print bearing
     bearing.export()
