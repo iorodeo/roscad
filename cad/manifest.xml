@@ -16,6 +16,7 @@
   <depend package="rospy"/>
   <depend package="tf"/>
   <depend package="geometry_msgs"/>
+  <depend package="cad_utilities"/>
 
 </package>
 

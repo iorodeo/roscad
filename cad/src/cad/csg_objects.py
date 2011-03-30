@@ -21,57 +21,61 @@ class CSGObject(ros_object.ROSObject):
         super(CSGObject, self).__init__()
 
     def union(self,obj):
-        return _Union([self,obj])
+        return Union([self,obj])
 
     # |
     def __or__(self, obj):
         return self.union(obj)
 
     def intersection(self,obj):
-        return _Intersection([self,obj])
+        return Intersection([self,obj])
 
     # &
     def __and__(self, obj):
         return self.intersection(obj)
 
     def difference(self,obj):
-        return _Difference([self,obj])
+        return Difference([self,obj])
 
     # -
     def __sub__(self, obj):
         return self.difference(obj)
 
     def merge(self,obj):
-        return _Merge([self,obj])
+        return Merge([self,obj])
 
     # ^
     def __xor__(self, obj):
         return self.merge(obj)
 
 
-class _Union(CSGObject):
-    def __init__(self,obj):
-        super(_Union, self).__init__()
+class Union(CSGObject):
+    def __init__(self,obj=[]):
+        super(Union, self).__init__()
         self.add_obj(obj)
         self.set_exportable(True)
+        self.set_primative('union')
 
-class _Intersection(CSGObject):
-    def __init__(self,obj):
-        super(_Intersection, self).__init__()
+class Intersection(CSGObject):
+    def __init__(self,obj=[]):
+        super(Intersection, self).__init__()
         self.add_obj(obj)
         self.set_exportable(True)
+        self.set_primative('intersection')
 
-class _Difference(CSGObject):
-    def __init__(self,obj):
-        super(_Difference, self).__init__()
+class Difference(CSGObject):
+    def __init__(self,obj=[]):
+        super(Difference, self).__init__()
         self.add_obj(obj)
         self.set_exportable(True)
+        self.set_primative('difference')
 
-class _Merge(CSGObject):
-    def __init__(self,obj):
-        super(_Merge, self).__init__()
+class Merge(CSGObject):
+    def __init__(self,obj=[]):
+        super(Merge, self).__init__()
         self.add_obj(obj)
         self.set_exportable(True)
+        self.set_primative('merge')
 
 
 if __name__ == "__main__":
@@ -79,7 +83,7 @@ if __name__ == "__main__":
     print a
     b = CSGObject()
     print b
-    c = _Union([a,b])
+    c = Union([a,b])
     print c
     d = a | b
     print d

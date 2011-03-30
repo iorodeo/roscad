@@ -28,7 +28,7 @@
 # --------------------------------------------------------------------------
 
 
-from dxfImportObjects import *
+from dxf_import_objects import *
 
 class Object:
         """Empty container class for dxf objects"""

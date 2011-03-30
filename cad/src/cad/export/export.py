@@ -15,6 +15,7 @@ limitations under the License.
 """
 from __future__ import division
 import scad
+import povray
 
 export_maps = {'scad': scad.SCADExportMap,
                'povray': povray.POVRAYExportMap}

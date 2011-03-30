@@ -36,21 +36,23 @@ class SCADExportMap(object):
 
         self.fn_default = 50
 
-        self.object_map = {'Union': {'header':'union() {block_open}',
+        self.object_map = {'union': {'header':'union() {block_open}',
                                      'footer': '{block_close}'},
-                           'Intersection': {'header': 'intersection() {block_open}',
+                           'intersection': {'header': 'intersection() {block_open}',
                                             'footer': '{block_close}'},
-                           'Difference': {'header': 'difference() {block_open}',
+                           'difference': {'header': 'difference() {block_open}',
                                           'footer': '{block_close}'},
-                           'Merge': {'header': 'union() {block_open}',
+                           'merge': {'header': 'union() {block_open}',
                                      'footer': '{block_close}'},
-                           'Box': {'header': 'cube(size = [{x:0.5f},{y:0.5f},{z:0.5f}], center = true);',
+                           'box': {'header': 'cube(size = [{x:0.5f},{y:0.5f},{z:0.5f}], center = true);',
                                    'footer': ''},
-                           'Sphere': {'header': 'sphere(r = {r:0.5f}, center = true);',
+                           'sphere': {'header': 'sphere(r = {r:0.5f}, center = true);',
                                       'footer': ''},
-                           'Cylinder': {'header': 'cylinder(h = {l:0.5f}, r = {r:0.5f}, center = true);',
+                           'cylinder': {'header': 'cylinder(h = {l:0.5f}, r = {r:0.5f}, center = true);',
                                         'footer': ''},
-                           'Cone': {'header': 'cylinder(h = {l:0.5f}, r1 = {r_neg:0.5f}, r2 = {r_pos:0.5f}, center = true);',
+                           'cone': {'header': 'cylinder(h = {l:0.5f}, r1 = {r_neg:0.5f}, r2 = {r_pos:0.5f}, center = true);',
+                                    'footer': ''},
+                           'extrusion': {'header': 'linear_extrude(file = "{profile}", height = {l:0.5f}, center = true);',
                                     'footer': ''}}
 
     def get_file_header_str(self,filename):
@@ -86,11 +88,11 @@ class SCADExportMap(object):
 
         return file_header_str
 
-    def get_obj_str(self,class_name):
-        try:
-            obj_str = self.object_map[class_name]['header']
-        except:
-            obj_str = ""
+    def get_obj_str(self,primative):
+        obj_str = ""
+        if primative != '':
+            if primative in self.object_map:
+                obj_str = self.object_map[primative]['header']
         return obj_str
 
     def get_obj_header_str(self,depth,position,rotation,scale,modifiers):

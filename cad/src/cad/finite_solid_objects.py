@@ -72,6 +72,7 @@ class Box(_FiniteSolidObject):
         self.dimensions_default = {'x': 1, 'y': 1, 'z': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
+        self.set_primative('box')
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -87,6 +88,7 @@ class Sphere(_FiniteSolidObject):
         self.dimensions_default = {'r': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
+        self.set_primative('sphere')
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -100,6 +102,7 @@ class Cylinder(_FiniteSolidObject):
         self.dimensions_default = {'l': 1, 'r': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
+        self.set_primative('cylinder')
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -114,6 +117,7 @@ class Cone(_FiniteSolidObject):
         self.dimensions_default = {'l': 1, 'r_pos': 1, 'r_neg': 0.1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
+        self.set_primative('cone')
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -121,6 +125,21 @@ class Cone(_FiniteSolidObject):
         export_obj_str = export_obj_str.format(l = dimensions['l'],
                                                r_pos = dimensions['r_pos'],
                                                r_neg = dimensions['r_neg'])
+        return export_obj_str
+
+class Extrusion(_FiniteSolidObject):
+    def __init__(self,*args,**kwargs):
+        super(Extrusion, self).__init__()
+        self.dimensions_default = {'l': 1, 'profile': ''}
+        self.set_dimensions_(args,kwargs)
+        self.set_exportable(True)
+        self.set_primative('extrusion')
+
+    def get_export_obj_str(self):
+        dimensions = self.get_dimensions()
+        export_obj_str = super(Extrusion,self).get_export_obj_str()
+        export_obj_str = export_obj_str.format(l = dimensions['l'],
+                                               profile = dimensions['profile'])
         return export_obj_str
 
 if __name__ == "__main__":
@@ -131,7 +150,7 @@ if __name__ == "__main__":
     sphere2 = sphere1.copy()
     sphere1.translate([0,0,5])
     sphere2.translate([0,0,-5])
-    cylinder = Cylinder(z=10,radius=1)
+    cylinder = Cylinder(l=10,r=1)
     dumbbell = (sphere1 | sphere2) | cylinder
     dumbbell.rotate(pi/4,[1,0,0])
     dumbbell.set_color([1,1,0],recursive=True)
@@ -143,8 +162,8 @@ if __name__ == "__main__":
     box1.rotate(0.25,[1,0,0])
     uni = dumbbell | box1
 
-    cylinder = Cylinder(z=20,radius=0.5)
-    cone = Cone(z=4,radius_pos=0.1,radius_neg=1)
+    cylinder = Cylinder(l=20,r=0.5)
+    cone = Cone(l=4,r_pos=0.1,r_neg=1)
     cone.translate([0,0,10])
     arrow = cylinder | cone
     arrow.translate([0,0,10])
@@ -158,4 +177,7 @@ if __name__ == "__main__":
     arrow_y.set_color([0,1,0],recursive=True)
     arrow_z.set_color([0,0,1],recursive=True)
     uni = uni | arrow_x | arrow_y | arrow_z
+
+    beam = Extrusion(profile='import/1010.dxf',l=20)
+    uni = uni | beam
     uni.export()

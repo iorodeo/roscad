@@ -28,6 +28,8 @@ class CADObject(object):
     def __init__(self):
         self.obj_list = []
 
+        self.primative = ''
+
         self.modifiers_default = {'transformations': {'position': [0,0,0],
                                                       'orientation': [0,0,0,1],
                                                       'scale': [1,1,1]}}
@@ -39,12 +41,27 @@ class CADObject(object):
 
         self.set_export_parameters()
 
+    def set_primative(self,primative):
+        if type(primative) != str:
+            primative = str(primative)
+        self.primative = primative
+
+    def get_primative(self):
+        return self.primative
+
     def add_obj(self, obj):
         """Add a CAD object to the object list."""
         if type(obj) == list:
             self.obj_list.extend(obj)
         else:
             self.obj_list.append(obj)
+
+    def set_obj_list(self,obj_list=[]):
+        self.obj_list = []
+        self.add_obj(obj_list)
+
+    def get_obj_list(self):
+        return copy.deepcopy(self.obj_list)
 
     def copy(self):
         return copy.deepcopy(self)
@@ -57,7 +74,7 @@ class CADObject(object):
             color.append(1)
         self.set_modifier('color', color)
         if recursive:
-            for obj in self.obj_list:
+            for obj in self.get_obj_list():
                 obj.set_color(color,recursive=True)
 
     def get_color(self):
@@ -164,14 +181,14 @@ class CADObject(object):
                                  classname = str(self.get_class_name()),
                                  modifiers = str(self.get_modifiers()),
                                  export_parameters = str(self.get_export_parameters()),
-                                 obj_list = str(self.obj_list))
+                                 obj_list = str(self.get_obj_list()))
         return obj_str
 
     def __str__(self,depth=0):
         rtn_str = self.get_obj_str(depth)
 
         try:
-            for obj in self.obj_list:
+            for obj in self.get_obj_list():
                 rtn_str = '{rtn_str}{obj}'.format(rtn_str = rtn_str,
                                                   obj = obj.__str__(depth+1))
         except:
@@ -180,7 +197,7 @@ class CADObject(object):
         return rtn_str
 
     def get_export_obj_str(self):
-        export_obj_str = self.export_map.get_obj_str(self.get_class_name())
+        export_obj_str = self.export_map.get_obj_str(self.get_primative())
         return export_obj_str
 
     def get_export_obj_header_str(self,depth):
@@ -209,8 +226,8 @@ class CADObject(object):
         if export_obj_header_str != "":
             export_str += export_obj_header_str
 
-            if 0 < len(self.obj_list):
-                for obj in self.obj_list:
+            if 0 < len(self.get_obj_list()):
+                for obj in self.get_obj_list():
                     export_str = '{export_str}{obj}'.format(export_str = export_str,
                                                             obj = obj.export(depth=(depth+1)),
                                                             block_open = '{block_open}',

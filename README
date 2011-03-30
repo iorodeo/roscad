@@ -1,0 +1,26 @@
+# Install Ubuntu:
+# http://www.ubuntu.com/desktop/get-ubuntu/download
+# ubuntu-10.10-desktop-amd64
+
+# Install Ubuntu packages
+sudo apt-get install build-essential python-yaml cmake subversion wget python-setuptools mercurial
+
+# ROS Installation
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu maverick main" > /etc/apt/sources.list.d/ros-latest.list'
+wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install ros-diamondback-desktop-full
+
+# Install the standalone program rosinstall
+sudo easy_install -U rosinstall
+sudo chmod -R a+rwx /usr/local/lib/python2.6/dist-packages/rosinstall*
+
+# Clone ros_cad respository into ~/mercurial/
+# Instructions at https://bitbucket.org/iorodeo/ros_cad/
+
+# Install ros_cad from local repository
+cd ~
+mkdir ros
+rosinstall ~/ros/ /opt/ros/diamondback
+rosinstall ~/ros/ ~/mercurial/ros_cad/
+echo "source ~/ros/setup.bash" >> ~/.bashrc

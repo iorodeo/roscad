@@ -1,0 +1,14 @@
+<package>
+  <description brief="cad_utilities">
+
+     cad_utilities
+
+  </description>
+  <author>Peter Polidoro</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cad_utilities</url>
+
+</package>
+
+
