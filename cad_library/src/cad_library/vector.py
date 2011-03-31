@@ -8,9 +8,9 @@ import numpy
 import copy
 
 
-class Arrow(csg.Union):
+class Vector(csg.Union):
     def __init__(self,tail=[0,0,0],head=[1,0,0],color=[1,0,0]):
-        super(Arrow, self).__init__()
+        super(Vector, self).__init__()
         z_axis = numpy.array([0,0,1])
         tail = numpy.array(tail)
         head = numpy.array(head)
@@ -51,19 +51,7 @@ class Arrow(csg.Union):
         self.set_color(color,recursive=True)
 
 
-class Origin(csg.Union):
-    def __init__(self,mag=10):
-        super(Origin,self).__init__()
-        x_arrow = Arrow(tail=[0,0,0],head=[mag,0,0],color=[1,0,0])
-        y_arrow = Arrow(tail=[0,0,0],head=[0,mag,0],color=[0,1,0])
-        z_arrow = Arrow(tail=[0,0,0],head=[0,0,mag],color=[0,0,1])
-        origin_point = fso.Sphere(r=mag/20)
-        origin_point.set_color([1,1,0])
-        self.add_obj([origin_point,x_arrow,y_arrow,z_arrow])
-
 # ---------------------------------------------------------------------
 if __name__ == '__main__':
-    # arrow = Arrow()
-    # arrow.export()
-    origin = Origin(100)
-    origin.export()
+    vector = Vector()
+    vector.export()
