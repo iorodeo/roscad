@@ -19,9 +19,10 @@ roslib.load_manifest('cad_library')
 import rospy
 import cad.csg_objects as csg
 import cad.finite_solid_objects as fso
+import cad.pattern_objects as po
 import math
 import copy
-
+import numpy
 
 # Data for profiles
 EXTRUSION_DXF = {
@@ -153,6 +154,9 @@ PROFILE_DIMENSION_MAP = {
             },
     }
 
+X_AXIS = [1,0,0]
+Y_AXIS = [0,1,0]
+Z_AXIS = [0,0,1]
 
 class Extrusion(fso.Extrusion):
     def __init__(self,*args,**kwargs):
@@ -204,17 +208,60 @@ class Extrusion(fso.Extrusion):
         return copy.deepcopy(data)
 
 class LBracket(csg.Difference):
-    def __init__(self,profile='1010',bracket_type='single'):
+    def __init__(self,x=1,y=1,z=1,extrusion_axis=[0,0,1]):
         super(LBracket, self).__init__()
-        self.profile_name = profile
-        self.bracket_type = bracket_type
+
+        if numpy.allclose(extrusion_axis,Z_AXIS):
+            dimension_0 = min(abs(x),abs(y))
+            dimension_1 = max(abs(x),abs(y))
+            l = abs(z)
+        elif numpy.allclose(extrusion_axis,Y_AXIS):
+            dimension_0 = min(abs(x),abs(z))
+            dimension_1 = max(abs(x),abs(z))
+            l = abs(y)
+        elif numpy.allclose(extrusion_axis,X_AXIS):
+            dimension_0 = min(abs(y),abs(z))
+            dimension_1 = max(abs(y),abs(z))
+            l = abs(x)
+
+        dimension_0 = "{dimension:0.1f}".format(dimension=dimension_0)
+        dimension_1 = "{dimension:0.1f}".format(dimension=dimension_1)
+        profile = PROFILE_DIMENSION_MAP[dimension_0][dimension_1]
         self.profile_data = self.get_profile_data(profile)
+
+        self.profile_name = profile
         if profile in LBRACKET_DXF:
             self.profile_dxf = LBRACKET_DXF[profile]
         else:
             self.profile_dxf = ''
+
+        if l == 2:
+            self.bracket_type = 'double'
+        else:
+            self.bracket_type = 'single'
+
         self.__make_bracket()
         self.__make_holes()
+
+        angle0 = math.atan2(1,1)
+        if numpy.allclose(extrusion_axis,Z_AXIS):
+            x = math.copysign(1,x)
+            y = math.copysign(1,y)
+            angle = math.atan2(y,x) - angle0
+            self.rotate(angle=angle,axis=Z_AXIS)
+        elif numpy.allclose(extrusion_axis,Y_AXIS):
+            self.rotate(angle=math.pi/2,axis=X_AXIS)
+            x = math.copysign(1,x)
+            z = math.copysign(1,z)
+            angle = math.atan2(x,z) - angle0
+            self.rotate(angle=angle,axis=Y_AXIS)
+        elif numpy.allclose(extrusion_axis,X_AXIS):
+            self.rotate(angle=-math.pi/2,axis=Y_AXIS)
+            y = math.copysign(1,y)
+            z = math.copysign(1,z)
+            angle = math.atan2(z,y) - angle0
+            self.rotate(angle=angle,axis=X_AXIS)
+
         self.set_color([0.5,0.5,0.5],recursive=True)
 
     def __make_bracket(self):
@@ -228,24 +275,29 @@ class LBracket(csg.Difference):
         hole_x = self.profile_data['lbracket'][self.bracket_type]['hole_x']
         hole_y = self.profile_data['lbracket'][self.bracket_type]['hole_y']
         hole_z = self.profile_data['lbracket'][self.bracket_type]['hole_z']
-        hole_list = []
+        # hole_list = []
         base_hole = fso.Cylinder(r=hole_r,l=hole_l)
         base_x_hole = base_hole.copy()
         base_x_hole.rotate(angle=math.pi/2,axis=[1,0,0])
-        for z in hole_z:
-            for x in hole_x:
-                hole = base_x_hole.copy()
-                hole.translate([x,0,z])
-                hole_list.append(hole)
+
+        x_holes = po.LinearArray(base_x_hole,x=hole_x,y=[0],z=hole_z)
+        self.add_obj(x_holes)
+        # for z in hole_z:
+        #     for x in hole_x:
+        #         hole = base_x_hole.copy()
+        #         hole.translate([x,0,z])
+        #         hole_list.append(hole)
 
         base_y_hole = base_hole.copy()
         base_y_hole.rotate(angle=math.pi/2,axis=[0,1,0])
-        for z in hole_z:
-            for y in hole_y:
-                hole = base_y_hole.copy()
-                hole.translate([0,y,z])
-                hole_list.append(hole)
-        self.add_obj(hole_list)
+        y_holes = po.LinearArray(base_y_hole,x=[0],y=hole_y,z=hole_z)
+        self.add_obj(y_holes)
+        # for z in hole_z:
+        #     for y in hole_y:
+        #         hole = base_y_hole.copy()
+        #         hole.translate([0,y,z])
+        #         hole_list.append(hole)
+        # self.add_obj(hole_list)
 
     def get_profile_data(self,profile=''):
         if profile in PROFILE_DATA:
@@ -255,17 +307,17 @@ class LBracket(csg.Difference):
         return copy.deepcopy(data)
 
 if __name__ == "__main__":
-    import arrow
-    # beam = Extrusion(profile='1020',l=20)
-    # beam.export()
-    bracket = LBracket(profile='2020',bracket_type='single')
-    bracket.export()
+    import origin
+    o = origin.Origin()
 
     # beam = Extrusion(x=2,y=1,z=6)
     # beam = Extrusion(x=14,y=2,z=4)
-    # origin = arrow.Origin()
-    # beam = beam | origin
+    # beam = beam | o
     # beam.export()
+
+    bracket = LBracket(x=-1,y=2,z=1,extrusion_axis=[0,1,0])
+    bracket = bracket | o
+    bracket.export()
 
 
 
