@@ -19,6 +19,9 @@ class Origin(csg.Union):
         origin_point.set_color([1,1,0])
         self.add_obj([origin_point,x_vector,y_vector,z_vector])
 
+    def set_color(self,recursive=False):
+        pass
+
 # ---------------------------------------------------------------------
 if __name__ == '__main__':
     origin = Origin(100)

@@ -48,28 +48,30 @@ class CADObject(object):
         # print variable
         variable = copy.deepcopy(variable)
         if type(variable) == dict:
+            variable_keys = variable.keys()
+            variable_keys.sort()
             if 0 < len(kwargs.keys()):
-                if (set(kwargs.keys()) == set(variable.keys())) or (len(variable) == 0):
+                if (set(kwargs.keys()) == set(variable_keys)) or (len(variable) == 0):
                     variable = copy.deepcopy(kwargs)
             elif len(args) == 1:
                 if (type(args[0]) == list) or (type(args[0]) == tuple):
                     if len(args[0]) == 1:
-                        for k, v in variable.iteritems():
-                            variable[k] = args[0][0]
-                    elif len(args[0]) == len(variable.keys()):
+                        for key in variable_keys:
+                            variable[key] = args[0][0]
+                    elif len(args[0]) == len(variable_keys):
                         arg_list = list(args[0])
-                        for k, v in variable.iteritems():
-                            variable[k] = arg_list.pop(0)
+                        for key in variable_keys:
+                            variable[key] = arg_list.pop(0)
                 elif (type(args[0]) == dict):
-                    if (set(args[0].keys()) == set(variable.keys())):
+                    if (set(args[0].keys()) == set(variable_keys)):
                         variable = args[0]
                 else:
-                    for k, v in variable.iteritems():
-                        variable[k] = args[0]
-            elif len(args) == len(variable.keys()):
+                    for key in variable_keys:
+                        variable[key] = args[0]
+            elif len(args) == len(variable_keys):
                 args = list(args)
-                for k, v in variable.iteritems():
-                    variable[k] = args.pop(0)
+                for key in variable_keys:
+                    variable[key] = args.pop(0)
         elif type(variable) == list:
             variable = []
             if 0 < len(kwargs.keys()):

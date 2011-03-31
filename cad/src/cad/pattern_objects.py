@@ -24,7 +24,23 @@ class LinearArray(csg.Union):
         self._set_dimensions(x,y,z)
         self._fill_array(obj,x,y,z)
 
+    def _make_iterable(self,x,y,z):
+        try:
+            len(x)
+        except:
+            x = [x]
+        try:
+            len(y)
+        except:
+            y = [y]
+        try:
+            len(z)
+        except:
+            z = [z]
+        return x,y,z
+
     def _set_array_values(self,x,y,z):
+        x,y,z = self._make_iterable(x,y,z)
         self.array_values = {'x': copy.deepcopy(x),
                              'y': copy.deepcopy(y),
                              'z': copy.deepcopy(z)}
@@ -33,6 +49,7 @@ class LinearArray(csg.Union):
         return copy.deepcopy(self.array_values)
 
     def _set_dimensions(self,x,y,z):
+        x,y,z = self._make_iterable(x,y,z)
         self.dimensions = {'x': len(x),
                            'y': len(y),
                            'z': len(z)}
@@ -41,6 +58,7 @@ class LinearArray(csg.Union):
         return copy.deepcopy(self.dimensions)
 
     def _fill_array(self,obj,x,y,z):
+        x,y,z = self._make_iterable(x,y,z)
         self.set_obj_list()
         for zn in z:
             for yn in y:
