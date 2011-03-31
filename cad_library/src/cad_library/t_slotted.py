@@ -38,6 +38,7 @@ LBRACKET_DXF = {
     '1010'            : 't_slotted/lbracket/1010.dxf',
     '1020'            : 't_slotted/lbracket/1020.dxf',
     '1030'            : 't_slotted/lbracket/1030.dxf',
+    '2020'            : 't_slotted/lbracket/2020.dxf',
     '2040'            : 't_slotted/lbracket/2040.dxf',
     '1545'            : 't_slotted/lbracket/1545.dxf',
     '3030'            : 't_slotted/lbracket/3030.dxf',
@@ -54,7 +55,13 @@ DATA_1010 = {
                             'hole_l': 0.5,
                             'hole_x': (0.5,),
                             'hole_y': (0.5,),
-                            'hole_z': (0.0,)}
+                            'hole_z': (0.0,)},
+                 'double': {'l': 1.875,
+                            'hole_r': 0.1285,
+                            'hole_l': 0.5,
+                            'hole_x': (0.5,),
+                            'hole_y': (0.5,),
+                            'hole_z': (-0.5,0.5)}
                      },
     }
 
@@ -70,6 +77,26 @@ DATA_1030 = {
     'y' : 3.0,
     'slot_x' : (0.0,),
     'slot_y' : (-1.0, 0.0, 1.0),
+    }
+
+DATA_2020 = {
+    'x' : 2.0,
+    'y' : 2.0,
+    'slot_x' : (-0.5,0.5),
+    'slot_y' : (-0.5,0.5),
+    'lbracket': {'single': {'l': 0.875,
+                            'hole_r': 0.1285,
+                            'hole_l': 0.5,
+                            'hole_x': (0.5,1.5),
+                            'hole_y': (0.5,1.5),
+                            'hole_z': (0.0,)},
+                 'double': {'l': 1.875,
+                            'hole_r': 0.1285,
+                            'hole_l': 0.5,
+                            'hole_x': (0.5,1.5),
+                            'hole_y': (0.5,1.5),
+                            'hole_z': (0.5,-0.5)}
+                     },
     }
 
 DATA_2040 = {
@@ -104,14 +131,44 @@ PROFILE_DATA = {
     '1010'            : DATA_1010,
     '1020'            : DATA_1020,
     '1030'            : DATA_1030,
+    '2020'            : DATA_2020,
     '2040'            : DATA_2040,
     '1545'            : DATA_1545,
     '3030'            : DATA_3030,
     '3060'            : DATA_3060,
     }
 
+PROFILE_DIMENSION_MAP = {
+    '1.0': {'1.0': '1010',
+            '2.0': '1020',
+            '3.0': '1030',
+            },
+    '2.0': {'2.0': '2020',
+            '4.0': '2040',
+            },
+    '1.5': {'4.5': '1545',
+            },
+    '3.0': {'3.0': '3030',
+            '6.0': '3060',
+            },
+    }
+
+
 class Extrusion(fso.Extrusion):
-    def __init__(self,profile='1010',l=24):
+    def __init__(self,*args,**kwargs):
+        dimensions_default = {'x': 1,
+                              'y': 1,
+                              'z': 12}
+        dimensions = self.fill_variable_with_args(args,kwargs,dimensions_default)
+        dimension_list = [dimensions['x'],dimensions['y'],dimensions['z']]
+        dimension_list.sort()
+
+        dimension_smallest = "{dimension:0.1f}".format(dimension=dimension_list[0])
+        dimension_middle = "{dimension:0.1f}".format(dimension=dimension_list[1])
+        profile = PROFILE_DIMENSION_MAP[dimension_smallest][dimension_middle]
+        print profile
+        profile = '1010'
+        l = 24
         self.profile_name = profile
         if profile in EXTRUSION_DXF:
             profile_dxf = EXTRUSION_DXF[profile]
@@ -179,11 +236,16 @@ class LBracket(csg.Difference):
         return copy.deepcopy(data)
 
 if __name__ == "__main__":
+    import arrows
     # beam = Extrusion(profile='1020',l=20)
     # beam.export()
-    bracket = LBracket(profile='1010',bracket_type='single')
-    bracket.export()
+    # bracket = LBracket(profile='2020',bracket_type='single')
+    # bracket.export()
 
+    beam = Extrusion(x=2,y=1,z=17)
+    origin = arrows.Origin()
+    beam = beam | origin
+    beam.export()
 
 
 

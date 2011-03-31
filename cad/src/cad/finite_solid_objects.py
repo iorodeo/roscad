@@ -16,7 +16,6 @@ limitations under the License.
 import copy
 import csg_objects
 
-
 class _FiniteSolidObject(csg_objects.CSGObject):
     def __init__(self):
         super(_FiniteSolidObject, self).__init__()
@@ -26,34 +25,36 @@ class _FiniteSolidObject(csg_objects.CSGObject):
 
     def set_dimensions(self,*args,**kwargs):
         self.set_dimensions_(args,kwargs)
+        self.update_bounding_box()
 
     def set_dimensions_(self,args,kwargs):
+        self.dimensions = self.fill_variable_with_args(args,kwargs,self.dimensions_default)
         # print args
         # print "len(args) = " + str(len(args))
         # print kwargs
-        self.dimensions = self.dimensions_default
-        if 0 < len(kwargs.keys()):
-            if set(kwargs.keys()) == set(self.dimensions_default.keys()):
-                self.dimensions = kwargs
-        elif len(args) == 1:
-            if (type(args[0]) == list) or (type(args[0]) == tuple):
-                if len(args[0]) == 1:
-                    for k, v in self.dimensions_default.iteritems():
-                        self.dimensions[k] = args[0][0]
-                elif len(args[0]) == len(self.dimensions_default.keys()):
-                    arg_list = list(args[0])
-                    for k, v in self.dimensions_default.iteritems():
-                        self.dimensions[k] = arg_list.pop(0)
-            elif (type(args[0]) == dict):
-                if (set(args[0].keys()) == set(self.dimensions_default.keys())):
-                    self.dimensions = args[0]
-            else:
-                for k, v in self.dimensions_default.iteritems():
-                    self.dimensions[k] = args[0]
-        elif len(args) == len(self.dimensions_default.keys()):
-            args = list(args)
-            for k, v in self.dimensions_default.iteritems():
-                self.dimensions[k] = args.pop(0)
+        # self.dimensions = self.dimensions_default
+        # if 0 < len(kwargs.keys()):
+        #     if set(kwargs.keys()) == set(self.dimensions_default.keys()):
+        #         self.dimensions = copy.deepcopy(kwargs)
+        # elif len(args) == 1:
+        #     if (type(args[0]) == list) or (type(args[0]) == tuple):
+        #         if len(args[0]) == 1:
+        #             for k, v in self.dimensions_default.iteritems():
+        #                 self.dimensions[k] = args[0][0]
+        #         elif len(args[0]) == len(self.dimensions_default.keys()):
+        #             arg_list = list(args[0])
+        #             for k, v in self.dimensions_default.iteritems():
+        #                 self.dimensions[k] = arg_list.pop(0)
+        #     elif (type(args[0]) == dict):
+        #         if (set(args[0].keys()) == set(self.dimensions_default.keys())):
+        #             self.dimensions = args[0]
+        #     else:
+        #         for k, v in self.dimensions_default.iteritems():
+        #             self.dimensions[k] = args[0]
+        # elif len(args) == len(self.dimensions_default.keys()):
+        #     args = list(args)
+        #     for k, v in self.dimensions_default.iteritems():
+        #         self.dimensions[k] = args.pop(0)
 
     def get_dimensions(self):
         return copy.deepcopy(self.dimensions)
@@ -74,6 +75,10 @@ class Box(_FiniteSolidObject):
         self.set_exportable(True)
         self.set_primative('box')
 
+    def update_bounding_box(self):
+        dimensions = self.get_dimensions()
+        super(Box, self).update_bounding_box(dimensions)
+
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
         export_obj_str = super(Box,self).get_export_obj_str()
@@ -85,10 +90,15 @@ class Box(_FiniteSolidObject):
 class Sphere(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Sphere, self).__init__()
-        self.dimensions_default = {'r': 1}
+        self.dimensions_default = {'r': 0.5}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('sphere')
+
+    def update_bounding_box(self):
+        dimensions = self.get_dimensions()
+        diameter = dimensions['r']*2
+        super(Sphere, self).update_bounding_box(x=diameter,y=diameter,z=diameter)
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -99,10 +109,15 @@ class Sphere(_FiniteSolidObject):
 class Cylinder(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cylinder, self).__init__()
-        self.dimensions_default = {'l': 1, 'r': 1}
+        self.dimensions_default = {'l': 1, 'r': 0.5}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('cylinder')
+
+    def update_bounding_box(self):
+        dimensions = self.get_dimensions()
+        diameter = dimensions['r']*2
+        super(Cylinder, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -114,10 +129,16 @@ class Cylinder(_FiniteSolidObject):
 class Cone(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cone, self).__init__()
-        self.dimensions_default = {'l': 1, 'r_pos': 1, 'r_neg': 0.1}
+        self.dimensions_default = {'l': 1, 'r_pos': 0.1, 'r_neg': 0.5}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('cone')
+
+    def update_bounding_box(self):
+        dimensions = self.get_dimensions()
+        r_max = max(dimensions['r_pos'],dimensions['r_neg'])
+        diameter = r_max*2
+        super(Cone, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
@@ -134,6 +155,11 @@ class Extrusion(_FiniteSolidObject):
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('extrusion')
+        self.bounding_box = Box()
+
+    def update_bounding_box(self):
+        dimensions = self.get_dimensions()
+        super(Extrusion, self).update_bounding_box(x=1,y=1,z=dimensions['l'])
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()
