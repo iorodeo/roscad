@@ -29,32 +29,6 @@ class _FiniteSolidObject(csg_objects.CSGObject):
 
     def set_dimensions_(self,args,kwargs):
         self.dimensions = self.fill_variable_with_args(args,kwargs,self.dimensions_default)
-        # print args
-        # print "len(args) = " + str(len(args))
-        # print kwargs
-        # self.dimensions = self.dimensions_default
-        # if 0 < len(kwargs.keys()):
-        #     if set(kwargs.keys()) == set(self.dimensions_default.keys()):
-        #         self.dimensions = copy.deepcopy(kwargs)
-        # elif len(args) == 1:
-        #     if (type(args[0]) == list) or (type(args[0]) == tuple):
-        #         if len(args[0]) == 1:
-        #             for k, v in self.dimensions_default.iteritems():
-        #                 self.dimensions[k] = args[0][0]
-        #         elif len(args[0]) == len(self.dimensions_default.keys()):
-        #             arg_list = list(args[0])
-        #             for k, v in self.dimensions_default.iteritems():
-        #                 self.dimensions[k] = arg_list.pop(0)
-        #     elif (type(args[0]) == dict):
-        #         if (set(args[0].keys()) == set(self.dimensions_default.keys())):
-        #             self.dimensions = args[0]
-        #     else:
-        #         for k, v in self.dimensions_default.iteritems():
-        #             self.dimensions[k] = args[0]
-        # elif len(args) == len(self.dimensions_default.keys()):
-        #     args = list(args)
-        #     for k, v in self.dimensions_default.iteritems():
-        #         self.dimensions[k] = args.pop(0)
 
     def get_dimensions(self):
         return copy.deepcopy(self.dimensions)

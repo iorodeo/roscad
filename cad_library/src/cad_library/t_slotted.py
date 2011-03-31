@@ -36,13 +36,13 @@ EXTRUSION_DXF = {
 
 LBRACKET_DXF = {
     '1010'            : 't_slotted/lbracket/1010.dxf',
-    '1020'            : 't_slotted/lbracket/1020.dxf',
-    '1030'            : 't_slotted/lbracket/1030.dxf',
+    # '1020'            : 't_slotted/lbracket/1020.dxf',
+    # '1030'            : 't_slotted/lbracket/1030.dxf',
     '2020'            : 't_slotted/lbracket/2020.dxf',
-    '2040'            : 't_slotted/lbracket/2040.dxf',
-    '1545'            : 't_slotted/lbracket/1545.dxf',
-    '3030'            : 't_slotted/lbracket/3030.dxf',
-    '3060'            : 't_slotted/lbracket/3060.dxf',
+    # '2040'            : 't_slotted/lbracket/2040.dxf',
+    # '1545'            : 't_slotted/lbracket/1545.dxf',
+    # '3030'            : 't_slotted/lbracket/3030.dxf',
+    # '3060'            : 't_slotted/lbracket/3060.dxf',
     }
 
 DATA_1010 = {
@@ -162,19 +162,38 @@ class Extrusion(fso.Extrusion):
         dimensions = self.fill_variable_with_args(args,kwargs,dimensions_default)
         dimension_list = [dimensions['x'],dimensions['y'],dimensions['z']]
         dimension_list.sort()
+        dimension_0 = "{dimension:0.1f}".format(dimension=dimension_list[0])
+        dimension_1 = "{dimension:0.1f}".format(dimension=dimension_list[1])
+        profile = PROFILE_DIMENSION_MAP[dimension_0][dimension_1]
+        # print profile
+        l = dimension_list[2]
 
-        dimension_smallest = "{dimension:0.1f}".format(dimension=dimension_list[0])
-        dimension_middle = "{dimension:0.1f}".format(dimension=dimension_list[1])
-        profile = PROFILE_DIMENSION_MAP[dimension_smallest][dimension_middle]
-        print profile
-        profile = '1010'
-        l = 24
         self.profile_name = profile
         if profile in EXTRUSION_DXF:
             profile_dxf = EXTRUSION_DXF[profile]
         else:
             profile_dxf = ''
+
         super(Extrusion, self).__init__(profile=profile_dxf,l=l)
+
+        if dimensions['x'] == dimension_list[0]:
+            if dimensions['z'] < dimensions['y']:
+                self.rotate(angle=-math.pi/2,axis=[1,0,0])
+        elif dimensions['x'] == dimension_list[1]:
+            if dimensions['z'] < dimensions['y']:
+                self.rotate(angle=math.pi/2,axis=[0,0,1])
+                self.rotate(angle=-math.pi/2,axis=[1,0,0])
+            else:
+                self.rotate(angle=math.pi/2,axis=[0,0,1])
+        else:
+            if dimensions['z'] < dimensions['y']:
+                self.rotate(angle=math.pi/2,axis=[0,1,0])
+            else:
+                self.rotate(angle=math.pi/2,axis=[0,0,1])
+                self.rotate(angle=math.pi/2,axis=[0,1,0])
+
+        # self.update_bounding_box(dimensions)
+
         self.set_color([0.5,0.5,0.5])
 
     def get_profile_data(self,profile=''):
@@ -236,16 +255,17 @@ class LBracket(csg.Difference):
         return copy.deepcopy(data)
 
 if __name__ == "__main__":
-    import arrows
+    import arrow
     # beam = Extrusion(profile='1020',l=20)
     # beam.export()
-    # bracket = LBracket(profile='2020',bracket_type='single')
-    # bracket.export()
+    bracket = LBracket(profile='2020',bracket_type='single')
+    bracket.export()
 
-    beam = Extrusion(x=2,y=1,z=17)
-    origin = arrows.Origin()
-    beam = beam | origin
-    beam.export()
+    # beam = Extrusion(x=2,y=1,z=6)
+    # beam = Extrusion(x=14,y=2,z=4)
+    # origin = arrow.Origin()
+    # beam = beam | origin
+    # beam.export()
 
 
 
