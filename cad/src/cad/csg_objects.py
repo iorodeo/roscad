@@ -22,13 +22,14 @@ class BoundingBox(ros_object.ROSObject):
         self.dimensions_default = {'x': 1,
                                    'y': 1,
                                    'z': 1}
+        self.dimensions = copy.deepcopy(self.dimensions_default)
         self.set_dimensions()
 
     def set_dimensions(self,*args,**kwargs):
         self.set_dimensions_(args,kwargs)
 
     def set_dimensions_(self,args,kwargs):
-        self.dimensions = self.fill_variable_with_args(args,kwargs,self.dimensions_default)
+        self.dimensions = self.fill_variable_with_args(args,kwargs,self.get_dimensions())
 
     def get_dimensions(self):
         return copy.deepcopy(self.dimensions)

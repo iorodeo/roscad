@@ -125,7 +125,7 @@ class Cone(_FiniteSolidObject):
 class Extrusion(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Extrusion, self).__init__()
-        self.dimensions_default = {'l': 1, 'profile': ''}
+        self.dimensions_default = {'l': 1, 'profile': '', 'x': 1, 'y': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('extrusion')
@@ -133,7 +133,7 @@ class Extrusion(_FiniteSolidObject):
 
     def update_bounding_box(self):
         dimensions = self.get_dimensions()
-        super(Extrusion, self).update_bounding_box(x=1,y=1,z=dimensions['l'])
+        super(Extrusion, self).update_bounding_box(x=dimensions['x'],y=dimensions['y'],z=dimensions['l'])
 
     def get_export_obj_str(self):
         dimensions = self.get_dimensions()

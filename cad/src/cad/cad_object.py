@@ -73,10 +73,20 @@ class CADObject(object):
                 for key in variable_keys:
                     variable[key] = args.pop(0)
         elif type(variable) == list:
-            variable = []
             if 0 < len(kwargs.keys()):
-                for k,v in kwargs.iteritems():
-                    variable.append(v)
+                kwargs_keys = kwargs.keys()
+                kwargs_keys.sort()
+                if len(variable) == 0:
+                    for key in kwargs_keys():
+                        variable.append(kwargs[key])
+                elif len(kwargs_keys) <= len(variable):
+                    count = 0
+                    for key in kwargs_keys():
+                        variable[count] = kwargs[key]
+                        count += 1
+            elif len(args) <= len(variable):
+                for count in range(len(args)):
+                    variable[count] = 
             elif len(args) == 1:
                 if (type(args[0]) == list):
                     variable = copy.deepcopy(args[0])
@@ -309,6 +319,10 @@ class CADObject(object):
             fid.close()
         else:
             return export_str
+
+    # Placeholder method
+    def update_bounding_box(self):
+        pass
 
 if __name__ == "__main__":
     cad_project = CADObject()
