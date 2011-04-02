@@ -42,10 +42,10 @@ class CADObject(object):
         self.set_export_parameters()
 
     def fill_variable_with_args(self,args,kwargs,variable):
-        # print args
-        # print "len(args) = " + str(len(args))
-        # print kwargs
-        # print variable
+        # print "args = \n" + str(args)
+        # print "len(args) = \n" + str(len(args))
+        # print "kwargs = \n" + str(kwargs)
+        # print "variable before = \n" + str(variable)
         variable = copy.deepcopy(variable)
         if type(variable) == dict:
             variable_keys = variable.keys()
@@ -53,6 +53,9 @@ class CADObject(object):
             if 0 < len(kwargs.keys()):
                 if (set(kwargs.keys()) == set(variable_keys)) or (len(variable) == 0):
                     variable = copy.deepcopy(kwargs)
+                else:
+                    for key in kwargs.keys():
+                        variable[key] = kwargs[key]
             elif len(args) == 1:
                 if (type(args[0]) == list) or (type(args[0]) == tuple):
                     if len(args[0]) == 1:
@@ -84,22 +87,29 @@ class CADObject(object):
                     for key in kwargs_keys():
                         variable[count] = kwargs[key]
                         count += 1
+            elif len(args) == 1:
+                arg = args[0]
+                if (type(arg) == list):
+                    variable = copy.deepcopy(arg)
+                elif (type(arg) == tuple):
+                    variable = copy.deepcopy(list(arg))
+                elif (type(arg) == dict):
+                    arg_keys = arg.keys()
+                    arg_keys.sort()
+                    variable = []
+                    for key in arg.keys:
+                        variable.append(arg[key])
+                else:
+                    l = len(variable)
+                    variable = [copy.deepcopy(arg)]*l
             elif len(args) <= len(variable):
                 for count in range(len(args)):
-                    variable[count] = 
-            elif len(args) == 1:
-                if (type(args[0]) == list):
-                    variable = copy.deepcopy(args[0])
-                elif (type(args[0]) == tuple):
-                    variable = copy.deepcopy(list(args[0]))
-                elif (type(args[0]) == dict):
-                    for k,v in args[0].iteritems():
-                        variable.append(v)
-                else:
-                    variable = [copy.deepcopy(args[0])]
+                    variable[count] = args[count]
             else:
                 variable = copy.deepcopy(args)
 
+        # print "variable after = \n" + str(variable)
+        # print "\n"
         return variable
 
     def set_transformations(self,transformations):
