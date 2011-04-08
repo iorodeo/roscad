@@ -20,9 +20,12 @@ import rospy
 import cad.csg_objects as csg
 import cad.finite_solid_objects as fso
 import cad.pattern_objects as po
+import cad.export.bom as bom
+
 import math
 import copy
 import numpy
+
 
 # Data for profiles
 EXTRUSION_DXF = {
@@ -197,8 +200,18 @@ class Extrusion(fso.Extrusion):
                 self.rotate(angle=math.pi/2,axis=[0,1,0])
 
         # self.update_bounding_box(dimensions)
-
+        self.__set_bom()
         self.set_color([0.5,0.5,0.5])
+
+    def __set_bom(self):
+        scale = self.get_scale()
+        BOM = bom.BOMObject()
+        BOM.set_parameter('name',(self.profile_name + '_extrusion'))
+        BOM.set_parameter('description','t_slotted extrusion')
+        BOM.set_parameter('dimensions','x: {x:0.3f}, y: {y:0.3f}, z: {z:0.3f}'.format(x=self.parameters['x']*scale[0],y=self.parameters['y']*scale[1],z=self.parameters['z']*scale[2]))
+        BOM.set_parameter('vender','?')
+        BOM.set_parameter('part number','?')
+        self.set_object_parameter('bom',BOM)
 
     def get_profile_data(self,profile=''):
         if profile in PROFILE_DATA:
@@ -262,6 +275,7 @@ class LBracket(csg.Difference):
             angle = math.atan2(z,y) - angle0
             self.rotate(angle=angle,axis=X_AXIS)
 
+        self.__set_bom()
         self.set_color([0.5,0.5,0.5],recursive=True)
 
     def __make_bracket(self):
@@ -298,6 +312,16 @@ class LBracket(csg.Difference):
         #         hole.translate([0,y,z])
         #         hole_list.append(hole)
         # self.add_obj(hole_list)
+
+    def __set_bom(self):
+        scale = self.get_scale()
+        BOM = bom.BOMObject()
+        BOM.set_parameter('name',(self.profile_name + '_lbracket'))
+        BOM.set_parameter('description','t_slotted L bracket')
+        BOM.set_parameter('dimensions','x: {x:0.3f}, y: {y:0.3f}, z: {z:0.3f}'.format(x=self.parameters['x']*scale[0],y=self.parameters['y']*scale[1],z=self.parameters['z']*scale[2]))
+        BOM.set_parameter('vender','?')
+        BOM.set_parameter('part number','?')
+        self.set_object_parameter('bom',BOM)
 
     def get_profile_data(self,profile=''):
         if profile in PROFILE_DATA:

@@ -26,6 +26,7 @@ class BOMObject(object):
         self.parameters_key_list = ['item number',
                                     'name',
                                     'description',
+                                    'dimensions',
                                     'vender',
                                     'part number',
                                     'quantity',
@@ -61,7 +62,10 @@ class BOMObject(object):
     def get_parameter(self,key):
         if type(key) != str:
             key = str(key)
-        return copy.deepcopy(self.parameters[key])
+        if key not in self.parameters.keys():
+            return ''
+        else:
+            return copy.deepcopy(self.parameters[key])
 
     def get_parameters_key_list(self):
         return copy.deepcopy(self.parameters_key_list)
@@ -94,24 +98,26 @@ class BOMExportMap(object):
         #                             'footer': ''},
         #                    'extrusion': {'header': 'linear_extrude(file = "{profile}", height = {l:0.5f}, center = true, convexity=10);',
         #                             'footer': ''}}
-        self.object_map = {'union': {'header':'{name}{block_open}',
+        # {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+        # self.item_str = '| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}'
+        self.object_map = {'union': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
                                      'footer': '{block_close}'},
-                           'intersection': {'header': '{name}{block_open}',
+                           'intersection': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
                                             'footer': '{block_close}'},
-                           'difference': {'header': '{name}{block_open}',
+                           'difference': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
                                           'footer': '{block_close}'},
-                           'merge': {'header': '{name}{block_open}',
-                                     'footer': '{block_close}'}}
-                           # 'box': {'header': '{name} cube(size = [{x:0.5f},{y:0.5f},{z:0.5f}], center = true);',
-                           #         'footer': ''},
-                           # 'sphere': {'header': '{name} sphere(r = {r:0.5f}, center = true);',
-                           #            'footer': ''},
-                           # 'cylinder': {'header': '{name} cylinder(h = {l:0.5f}, r = {r:0.5f}, center = true);',
-                           #              'footer': ''},
-                           # 'cone': {'header': '{name} cylinder(h = {l:0.5f}, r1 = {r_neg:0.5f}, r2 = {r_pos:0.5f}, center = true);',
-                           #          'footer': ''},
-                           # 'extrusion': {'header': '{name} linear_extrude(file = "{profile}", height = {l:0.5f}, center = true, convexity=10);',
-                           #          'footer': ''}}
+                           'merge': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+                                     'footer': '{block_close}'},
+                           'box': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+                                   'footer': ''},
+                           'sphere': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+                                      'footer': ''},
+                           'cylinder': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+                                        'footer': ''},
+                           'cone': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+                                    'footer': ''},
+                           'extrusion': {'header':'| {item_number} | {name} | {description} | {dimensions} | {vender} | {part_number} | {quantity} | {cost} |{block_open}',
+                                    'footer': ''}}
 
     def get_file_header_str(self,filename,obj):
         width = 70
@@ -141,20 +147,28 @@ class BOMExportMap(object):
         return file_header_str
 
     def get_obj_str(self,obj):
-        obj_str = ""
+        obj_str = "."
         try:
             bom = obj.get_object_parameter('bom')
         except KeyError:
             bom = {}
 
-        if 0 < len(bom):
+        if bom != {}:
             primative = obj.get_primative()
             if primative != '':
                 if primative in self.object_map:
                     obj_str = self.object_map[primative]['header']
                     obj_str = obj_str.format(block_open = '{block_open}',
                                              block_close = '{block_close}',
-                                             name = obj.get_name())
+                                             item_number = bom.get_parameter('item number'),
+                                             name = bom.get_parameter('name'),
+                                             description = bom.get_parameter('description'),
+                                             dimensions = bom.get_parameter('dimensions'),
+                                             vender = bom.get_parameter('vender'),
+                                             part_number = bom.get_parameter('part number'),
+                                             quantity = bom.get_parameter('quantity'),
+                                             cost = bom.get_parameter('cost'),
+                                             )
         return obj_str
 
     def get_obj_header_str(self,obj,depth):

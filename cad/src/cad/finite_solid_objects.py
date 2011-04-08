@@ -36,7 +36,7 @@ class _FiniteSolidObject(csg_objects.CSGObject):
     def get_obj_str(self,depth=0):
         obj_str_header = super(_FiniteSolidObject, self).get_obj_str(depth)
         obj_str = '{indent}dimensions = \n{indent}{dimensions:s}\n'
-        obj_str = obj_str.format(indent = self.get_export_parameter('indent_str')*depth,
+        obj_str = obj_str.format(indent = self.get_object_parameter('indent_str')*depth,
                                  dimensions = str(self.get_dimensions()))
         obj_str = obj_str_header + obj_str
         return obj_str

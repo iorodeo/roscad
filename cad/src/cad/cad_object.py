@@ -253,6 +253,9 @@ class CADObject(object):
 
         return rtn_str
 
+    # def format_obj_str(self):
+    #     pass
+
     def get_export_obj_str(self):
         export_obj_str = self.export_map.get_obj_str(obj=self)
         return export_obj_str
@@ -281,7 +284,10 @@ class CADObject(object):
             export_str = ""
         export_obj_header_str = self.get_export_obj_header_str(depth)
         if export_obj_header_str != "":
-            export_str += export_obj_header_str
+            # print "export_obj_header_str = " + export_obj_header_str
+            # print "export_obj_header_str == '.\n' " + str(export_obj_header_str == '.\n')
+            if export_obj_header_str != '.\n':
+                export_str += export_obj_header_str
             # export_str_list.append(export_obj_header_str)
 
             if 0 < len(self.get_obj_list()):
