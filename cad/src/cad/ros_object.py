@@ -28,8 +28,8 @@ except:
 if ros_root == "":
     class ROSObject(cad_object.CADObject):
         """ROS object wrapper base class."""
-        def __init__(self, position=[0,0,0], orientation=[0,0,0,1], scale=1, exportable=False, modifiers={}):
-            super(ROSObject, self).__init__(position,orientation,scale,exportable,modifiers)
+        def __init__(self):
+            super(ROSObject, self).__init__()
 
 else:
     import roslib
@@ -79,7 +79,7 @@ else:
         def get_obj_str(self,depth=0):
             obj_str_header = super(ROSObject, self).get_obj_str(depth)
             obj_str = '{indent}rotation = \n{indent}{rotation:s}\n'
-            obj_str = obj_str.format(indent = self.get_export_parameter('indent_str')*depth,
+            obj_str = obj_str.format(indent = self.get_parameter('indent_str')*depth,
                                      rotation = str(self.get_rotation()))
             obj_str = obj_str_header + obj_str
             return obj_str

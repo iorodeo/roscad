@@ -14,12 +14,51 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from __future__ import division
+import os
 import scad
 import povray
+import bom
 
 export_maps = {'scad': scad.SCADExportMap,
-               'povray': povray.POVRAYExportMap}
+               'povray': povray.POVRAYExportMap,
+               'bom': bom.BOMExportMap,
+               }
 
+
+def get_export_map_and_filename(filename,filetype,obj):
+    filename_base, filename_extension = os.path.splitext(filename)
+    if (filetype != None):
+        if type(filetype) != str:
+            filetype = str(filetype)
+        filetype = filetype.lower()
+        if (filetype == 'scad') or (filetype == 's'):
+            filename_extension = '.scad'
+        elif (filetype == 'povray') or (filetype == 'pov') or (filetype == 'p'):
+            filename_extension = '.pov'
+        elif (filetype == 'bom') or (filetype == 'b'):
+            filename_extension = '.txt'
+    elif filename_extension == '':
+        filename_extension = '.scad'
+
+    filename_extension = filename_extension.lower()
+    if filename_extension == '.pov':
+        filetype = 'povray'
+    elif filename_extension == '.txt':
+        filetype = 'bom'
+    else:
+        filename_extension = '.scad'
+        filetype = 'scad'
+
+    if filetype == 'scad':
+        export_map = export_maps['scad'](obj)
+    elif filetype == 'povray':
+        export_map = export_maps['povray'](obj)
+    elif filetype == 'bom':
+        export_map = export_maps['bom'](obj)
+
+    filename = filename_base + filename_extension
+
+    return export_map,filename
 
 if __name__ == "__main__":
     scad_export_map = maps['scad']()

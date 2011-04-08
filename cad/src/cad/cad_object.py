@@ -19,7 +19,7 @@ import math
 import re
 import random
 
-from export.export import export_maps
+import export.export as export
 
 
 class CADObject(object):
@@ -28,18 +28,15 @@ class CADObject(object):
     def __init__(self):
         self.obj_list = []
 
-        self.primative = ''
+        self.object_parameters_default = {'transformations': {'position': [0,0,0],
+                                                              'orientation': [0,0,0,1],
+                                                              'scale': [1,1,1]},
+                                          'primative': '',
+                                          'exportable': False,
+                                          'indent_str': ' '*4,
+                                          }
 
-        self.modifiers_default = {'transformations': {'position': [0,0,0],
-                                                      'orientation': [0,0,0,1],
-                                                      'scale': [1,1,1]}}
-
-        self.export_parameters_default = {'exportable': False,
-                                          'indent_str': ' '*4}
-
-        self.set_modifiers()
-
-        self.set_export_parameters()
+        self.set_object_parameters()
 
     def fill_variable_with_args(self,args,kwargs,variable):
         # print "args = \n" + str(args)
@@ -115,18 +112,18 @@ class CADObject(object):
     def set_transformations(self,transformations):
         transformations_previous = self.get_transformations()
         transformations = self.fill_variable_with_args(transformations,transformations_previous)
-        self.set_modifier('transformations',transformations)
+        self.set_object_parameter('transformations',transformations)
 
     def get_transformations(self):
-        self.get_modifier('transformations')
+        self.get_object_parameter('transformations')
 
     def set_primative(self,primative):
         if type(primative) != str:
             primative = str(primative)
-        self.primative = primative
+        self.set_object_parameter('primative', primative)
 
     def get_primative(self):
-        return self.primative
+        return self.get_object_parameter('primative')
 
     def add_obj(self, obj):
         """Add a CAD object to the object list."""
@@ -151,31 +148,31 @@ class CADObject(object):
             color = [random.random(),random.random(),random.random(),1]
         if len(color) == 3:
             color.append(1)
-        self.set_modifier('color', color)
+        self.set_object_parameter('color', color)
         # print "Setting color of " + self.get_class_name() + " to " + str(color)
         if recursive:
             for obj in self.get_obj_list():
                 obj.set_color(color,recursive=True)
 
     def get_color(self):
-        if 'color' not in self.modifiers:
+        if 'color' not in self.object_parameters:
             return []
         else:
-            return copy.deepcopy(self.get_modifier('color'))
+            return copy.deepcopy(self.get_object_parameter('color'))
 
     def set_position(self,position=[0,0,0]):
         if len(position) == 3:
-            self.modifiers['transformations']['position'] = copy.deepcopy(position)
+            self.object_parameters['transformations']['position'] = copy.deepcopy(position)
 
     def get_position(self):
-        return copy.deepcopy(self.modifiers['transformations']['position'])
+        return copy.deepcopy(self.object_parameters['transformations']['position'])
 
     def set_orientation(self,orientation=[0,0,0,1]):
         if len(orientation) == 4:
-            self.modifiers['transformations']['orientation'] = copy.deepcopy(orientation)
+            self.object_parameters['transformations']['orientation'] = copy.deepcopy(orientation)
 
     def get_orientation(self):
-        return copy.deepcopy(self.modifiers['transformations']['orientation'])
+        return copy.deepcopy(self.object_parameters['transformations']['orientation'])
 
     def translate(self,translation=[0,0,0]):
         if len(translation) == 3:
@@ -186,69 +183,50 @@ class CADObject(object):
             self.set_position(position)
 
     def set_scale(self,scale=1):
-        self.modifiers['transformations']['scale'] = [1,1,1]
+        self.object_parameters['transformations']['scale'] = [1,1,1]
         new_scale = copy.deepcopy(scale)
         try:
             if len(new_scale) == 3:
-                self.modifiers['transformations']['scale'][0] = new_scale[0]
-                self.modifiers['transformations']['scale'][1] = new_scale[1]
-                self.modifiers['transformations']['scale'][2] = new_scale[2]
+                self.object_parameters['transformations']['scale'][0] = new_scale[0]
+                self.object_parameters['transformations']['scale'][1] = new_scale[1]
+                self.object_parameters['transformations']['scale'][2] = new_scale[2]
             elif len(new_scale) == 1:
-                self.modifiers['transformations']['scale'][0] = new_scale[0]
-                self.modifiers['transformations']['scale'][1] = new_scale[0]
-                self.modifiers['transformations']['scale'][2] = new_scale[0]
+                self.object_parameters['transformations']['scale'][0] = new_scale[0]
+                self.object_parameters['transformations']['scale'][1] = new_scale[0]
+                self.object_parameters['transformations']['scale'][2] = new_scale[0]
         except:
-            self.modifiers['transformations']['scale'][0] = scale
-            self.modifiers['transformations']['scale'][1] = scale
-            self.modifiers['transformations']['scale'][2] = scale
+            self.object_parameters['transformations']['scale'][0] = scale
+            self.object_parameters['transformations']['scale'][1] = scale
+            self.object_parameters['transformations']['scale'][2] = scale
 
     def get_scale(self):
-        return copy.deepcopy(self.modifiers['transformations']['scale'])
+        return copy.deepcopy(self.object_parameters['transformations']['scale'])
 
     def set_exportable(self,exportable=False):
         if type(exportable) == bool:
-            self.export_parameters['exportable'] = exportable
+            self.set_object_parameter('exportable', exportable)
 
     def get_exportable(self):
-        return self.export_parameters['exportable']
+        return self.get_object_parameter('exportable')
 
-    def set_modifiers(self,modifiers={}):
-        if modifiers == {}:
-            modifiers = self.modifiers_default
-        if type(modifiers) == dict:
-            self.modifiers = copy.deepcopy(modifiers)
+    def set_object_parameters(self,object_parameters={}):
+        if object_parameters == {}:
+            self.object_parameters = copy.deepcopy(self.object_parameters_default)
+        elif type(object_parameters) == dict:
+            self.object_parameters = copy.deepcopy(object_parameters)
 
-    def get_modifiers(self):
-        return copy.deepcopy(self.modifiers)
+    def get_object_parameters(self):
+        return copy.deepcopy(self.object_parameters)
 
-    def set_modifier(self,key,value):
+    def set_object_parameter(self,key,value):
         if type(key) != str:
             key = str(key)
-        self.modifiers[key] = copy.deepcopy(value)
+        self.object_parameters[key] = copy.deepcopy(value)
 
-    def get_modifier(self,key):
+    def get_object_parameter(self,key):
         if type(key) != str:
             key = str(key)
-        return copy.deepcopy(self.modifiers[key])
-
-    def set_export_parameters(self,export_parameters={}):
-        if export_parameters == {}:
-            export_parameters = self.export_parameters_default
-        if type(export_parameters) == dict:
-            self.export_parameters = copy.deepcopy(export_parameters)
-
-    def get_export_parameters(self):
-        return copy.deepcopy(self.export_parameters)
-
-    def set_export_parameter(self,key,value):
-        if type(key) != str:
-            key = str(key)
-        self.export_parameters[key] = copy.deepcopy(value)
-
-    def get_export_parameter(self,key):
-        if type(key) != str:
-            key = str(key)
-        return copy.deepcopy(self.export_parameters[key])
+        return copy.deepcopy(self.object_parameters[key])
 
     def get_class_name(self):
         class_str = str(type(self))
@@ -256,11 +234,10 @@ class CADObject(object):
         return m.group('classname')
 
     def get_obj_str(self,depth=0):
-        obj_str = '{indent}class name = \n{indent}{classname}\n{indent}modifiers = \n{indent}{modifiers}\n{indent}export_parameters = \n{indent}{export_parameters}\n{indent}obj_list = \n{indent}{obj_list}\n'
-        obj_str = obj_str.format(indent = self.get_export_parameter('indent_str')*depth,
+        obj_str = '{indent}class name = \n{indent}{classname}\n{indent}object_parameters = \n{indent}{object_parameters}\n{indent}obj_list = \n{indent}{obj_list}\n'
+        obj_str = obj_str.format(indent = self.get_export_object_parameter('indent_str')*depth,
                                  classname = str(self.get_class_name()),
-                                 modifiers = str(self.get_modifiers()),
-                                 export_parameters = str(self.get_export_parameters()),
+                                 object_parameters = str(self.get_object_parameters()),
                                  obj_list = str(self.get_obj_list()))
         return obj_str
 
@@ -277,17 +254,14 @@ class CADObject(object):
         return rtn_str
 
     def get_export_obj_str(self):
-        export_obj_str = self.export_map.get_obj_str(self.get_primative())
+        export_obj_str = self.export_map.get_obj_str(obj=self)
         return export_obj_str
 
     def get_export_obj_header_str(self,depth):
         export_obj_str = self.get_export_obj_str()
         if export_obj_str != "":
-            export_obj_header_str = self.export_map.get_obj_header_str(depth = depth,
-                                                                       position = self.get_position(),
-                                                                       rotation = self.get_rotation(),
-                                                                       scale = self.get_scale(),
-                                                                       modifiers = self.get_modifiers())
+            export_obj_header_str = self.export_map.get_obj_header_str(obj = self,
+                                                                       depth = depth)
             export_obj_header_str = export_obj_header_str.format(block_open = '{block_open}',
                                                                  block_close = '{block_close}',
                                                                  obj = export_obj_str)
@@ -295,34 +269,42 @@ class CADObject(object):
             export_obj_header_str = ""
         return export_obj_header_str
 
-    def export(self,filename="export.scad",type=None,depth=0):
-        # self.export_map = export_maps.export_maps.SCADExportMap(self.export_parameters)
-        self.export_map = export_maps['scad'](self.export_parameters)
+    def export(self,filename="export.scad",filetype=None,depth=0):
+        self.export_map,filename = export.get_export_map_and_filename(filename,filetype,self)
+        # self.export_map = export_maps.export_maps.SCADExportMap(self.object_parameters)
+        # self.export_map = export_maps['scad'](self.object_parameters)
         if depth == 0:
-            export_str = self.export_map.get_file_header_str(filename)
+            # export_str_list = []
+            # export_str_list.append(self.export_map.get_file_header_str(filename))
+            export_str = self.export_map.get_file_header_str(filename,self)
         else:
             export_str = ""
         export_obj_header_str = self.get_export_obj_header_str(depth)
         if export_obj_header_str != "":
             export_str += export_obj_header_str
+            # export_str_list.append(export_obj_header_str)
 
             if 0 < len(self.get_obj_list()):
                 for obj in self.get_obj_list():
+                    # export_str = '{export_str}{obj}'.format(export_str = export_str,
+                    #                                         obj = obj.export(depth=(depth+1)),
+                    #                                         block_open = '{block_open}',
+                    #                                         block_close = '{block_close}')
                     export_str = '{export_str}{obj}'.format(export_str = export_str,
-                                                            obj = obj.export(depth=(depth+1)),
+                                                            obj = obj.export(filename=filename,depth=(depth+1)),
                                                             block_open = '{block_open}',
                                                             block_close = '{block_close}')
 
-            export_obj_footer_str = self.export_map.get_obj_footer_str(primative = self.get_primative(),
-                                                                       depth = depth,
-                                                                       position = self.get_position(),
-                                                                       rotation = self.get_rotation(),
-                                                                       scale = self.get_scale(),
-                                                                       modifiers = self.get_modifiers())
+            export_obj_footer_str = self.export_map.get_obj_footer_str(obj = self,
+                                                                       depth = depth)
             export_str = export_str + export_obj_footer_str
 
         if depth == 0:
             fid = open(filename, 'w')
+            # for export_str in export_str_list:
+            #     export_str = export_str.format(block_open = self.export_map.block_open_str,
+            #                                    block_close = self.export_map.block_close_str)
+            #     fid.write(export_str)
             export_str = export_str.format(block_open = self.export_map.block_open_str,
                                            block_close = self.export_map.block_close_str)
             fid.write(export_str)
