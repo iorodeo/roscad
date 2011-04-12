@@ -25,7 +25,7 @@ export_maps = {'scad': scad.SCADExportMap,
                }
 
 
-def get_export_map_and_filename(filename,filetype,obj):
+def get_export_map_and_filename(obj,filename,filetype):
     filename_base, filename_extension = os.path.splitext(filename)
     if (filetype != None):
         if type(filetype) != str:
@@ -59,6 +59,16 @@ def get_export_map_and_filename(filename,filetype,obj):
     filename = filename_base + filename_extension
 
     return export_map,filename
+
+def write_export_file(obj,filename,filetype):
+    export_map,filename = get_export_map_and_filename(obj,filename,filetype)
+    file_header_str = export_map.get_file_header_str(obj,filename)
+    objects_str = export_map.get_objects_str(obj)
+    fid = open(filename,'w')
+    fid.write(file_header_str)
+    fid.write(objects_str)
+    fid.close()
+
 
 if __name__ == "__main__":
     scad_export_map = maps['scad']()

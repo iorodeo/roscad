@@ -59,13 +59,21 @@ DATA_1010 = {
                             'hole_l': 0.5,
                             'hole_x': (0.5,),
                             'hole_y': (0.5,),
-                            'hole_z': (0.0,)},
+                            'hole_z': (0.0,),
+                            'vendor': 'McMaster',
+                            'part_number': '47065T223',
+                            'cost': 3.98,
+                            },
                  'double': {'l': 1.875,
                             'hole_r': 0.1285,
                             'hole_l': 0.5,
                             'hole_x': (0.5,),
                             'hole_y': (0.5,),
-                            'hole_z': (-0.5,0.5)}
+                            'hole_z': (-0.5,0.5),
+                            'vendor': 'McMaster',
+                            'part_number': '47065T169',
+                            'cost': 5.58,
+                            }
                      },
     }
 
@@ -93,13 +101,21 @@ DATA_2020 = {
                             'hole_l': 0.5,
                             'hole_x': (0.5,1.5),
                             'hole_y': (0.5,1.5),
-                            'hole_z': (0.0,)},
+                            'hole_z': (0.0,),
+                            'vendor': 'McMaster',
+                            'part_number': '47065T175',
+                            'cost': 4.56,
+                            },
                  'double': {'l': 1.875,
                             'hole_r': 0.1285,
                             'hole_l': 0.5,
                             'hole_x': (0.5,1.5),
                             'hole_y': (0.5,1.5),
-                            'hole_z': (0.5,-0.5)}
+                            'hole_z': (0.5,-0.5),
+                            'vendor': 'McMaster',
+                            'part_number': '47065T176',
+                            'cost': 5.96,
+                            }
                      },
     }
 
@@ -173,7 +189,7 @@ class Extrusion(fso.Extrusion):
         dimension_1 = "{dimension:0.1f}".format(dimension=dimension_list[1])
         profile = PROFILE_DIMENSION_MAP[dimension_0][dimension_1]
         # print profile
-        l = dimension_list[2]
+        self.l = dimension_list[2]
 
         self.profile_name = profile
         if profile in EXTRUSION_DXF:
@@ -181,7 +197,7 @@ class Extrusion(fso.Extrusion):
         else:
             profile_dxf = ''
 
-        super(Extrusion, self).__init__(profile=profile_dxf,l=l)
+        super(Extrusion, self).__init__(profile=profile_dxf,l=self.l)
 
         if dimensions['x'] == dimension_list[0]:
             if dimensions['z'] < dimensions['y']:
@@ -206,10 +222,10 @@ class Extrusion(fso.Extrusion):
     def __set_bom(self):
         scale = self.get_scale()
         BOM = bom.BOMObject()
-        BOM.set_parameter('name',(self.profile_name + '_extrusion'))
-        BOM.set_parameter('description','t_slotted extrusion')
-        BOM.set_parameter('dimensions','x: {x:0.3f}, y: {y:0.3f}, z: {z:0.3f}'.format(x=self.parameters['x']*scale[0],y=self.parameters['y']*scale[1],z=self.parameters['z']*scale[2]))
-        BOM.set_parameter('vender','?')
+        BOM.set_parameter('name',(self.profile_name + '-' + '{l:0.3f}'.format(l=self.l*scale[2])))
+        BOM.set_parameter('description','T-Slotted Extrusion')
+        BOM.set_parameter('dimensions','l: {l:0.3f}'.format(l=self.l*scale[2]))
+        BOM.set_parameter('vendor','Prime Resource')
         BOM.set_parameter('part number','?')
         self.set_object_parameter('bom',BOM)
 
@@ -316,11 +332,12 @@ class LBracket(csg.Difference):
     def __set_bom(self):
         scale = self.get_scale()
         BOM = bom.BOMObject()
-        BOM.set_parameter('name',(self.profile_name + '_lbracket'))
-        BOM.set_parameter('description','t_slotted L bracket')
-        BOM.set_parameter('dimensions','x: {x:0.3f}, y: {y:0.3f}, z: {z:0.3f}'.format(x=self.parameters['x']*scale[0],y=self.parameters['y']*scale[1],z=self.parameters['z']*scale[2]))
-        BOM.set_parameter('vender','?')
-        BOM.set_parameter('part number','?')
+        BOM.set_parameter('name',(self.profile_name + '-' + self.bracket_type))
+        BOM.set_parameter('description','T-Slotted L Bracket')
+        BOM.set_parameter('dimensions','bracket_type: {bracket_type}'.format(bracket_type=self.bracket_type))
+        BOM.set_parameter('vendor',self.profile_data['lbracket'][self.bracket_type]['vendor'])
+        BOM.set_parameter('part number',self.profile_data['lbracket'][self.bracket_type]['part_number'])
+        BOM.set_parameter('cost',self.profile_data['lbracket'][self.bracket_type]['cost'])
         self.set_object_parameter('bom',BOM)
 
     def get_profile_data(self,profile=''):

@@ -53,14 +53,6 @@ class Box(_FiniteSolidObject):
         dimensions = self.get_dimensions()
         super(Box, self).update_bounding_box(dimensions)
 
-    def get_export_obj_str(self):
-        dimensions = self.get_dimensions()
-        export_obj_str = super(Box,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(x = dimensions['x'],
-                                               y = dimensions['y'],
-                                               z = dimensions['z'])
-        return export_obj_str
-
 class Sphere(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Sphere, self).__init__()
@@ -74,12 +66,6 @@ class Sphere(_FiniteSolidObject):
         diameter = dimensions['r']*2
         super(Sphere, self).update_bounding_box(x=diameter,y=diameter,z=diameter)
 
-    def get_export_obj_str(self):
-        dimensions = self.get_dimensions()
-        export_obj_str = super(Sphere,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(r = dimensions['r'])
-        return export_obj_str
-
 class Cylinder(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cylinder, self).__init__()
@@ -92,13 +78,6 @@ class Cylinder(_FiniteSolidObject):
         dimensions = self.get_dimensions()
         diameter = dimensions['r']*2
         super(Cylinder, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
-
-    def get_export_obj_str(self):
-        dimensions = self.get_dimensions()
-        export_obj_str = super(Cylinder,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(l = dimensions['l'],
-                                               r = dimensions['r'])
-        return export_obj_str
 
 class Cone(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
@@ -114,14 +93,6 @@ class Cone(_FiniteSolidObject):
         diameter = r_max*2
         super(Cone, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
-    def get_export_obj_str(self):
-        dimensions = self.get_dimensions()
-        export_obj_str = super(Cone,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(l = dimensions['l'],
-                                               r_pos = dimensions['r_pos'],
-                                               r_neg = dimensions['r_neg'])
-        return export_obj_str
-
 class Extrusion(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Extrusion, self).__init__()
@@ -135,12 +106,6 @@ class Extrusion(_FiniteSolidObject):
         dimensions = self.get_dimensions()
         super(Extrusion, self).update_bounding_box(x=dimensions['x'],y=dimensions['y'],z=dimensions['l'])
 
-    def get_export_obj_str(self):
-        dimensions = self.get_dimensions()
-        export_obj_str = super(Extrusion,self).get_export_obj_str()
-        export_obj_str = export_obj_str.format(l = dimensions['l'],
-                                               profile = dimensions['profile'])
-        return export_obj_str
 
 if __name__ == "__main__":
     import math

@@ -253,70 +253,11 @@ class CADObject(object):
 
         return rtn_str
 
-    # def format_obj_str(self):
-    #     pass
+    def get_dimensions(self):
+        return {}
 
-    def get_export_obj_str(self):
-        export_obj_str = self.export_map.get_obj_str(obj=self)
-        return export_obj_str
-
-    def get_export_obj_header_str(self,depth):
-        export_obj_str = self.get_export_obj_str()
-        if export_obj_str != "":
-            export_obj_header_str = self.export_map.get_obj_header_str(obj = self,
-                                                                       depth = depth)
-            export_obj_header_str = export_obj_header_str.format(block_open = '{block_open}',
-                                                                 block_close = '{block_close}',
-                                                                 obj = export_obj_str)
-        else:
-            export_obj_header_str = ""
-        return export_obj_header_str
-
-    def export(self,filename="export.scad",filetype=None,depth=0):
-        self.export_map,filename = export.get_export_map_and_filename(filename,filetype,self)
-        # self.export_map = export_maps.export_maps.SCADExportMap(self.object_parameters)
-        # self.export_map = export_maps['scad'](self.object_parameters)
-        if depth == 0:
-            # export_str_list = []
-            # export_str_list.append(self.export_map.get_file_header_str(filename))
-            export_str = self.export_map.get_file_header_str(filename,self)
-        else:
-            export_str = ""
-        export_obj_header_str = self.get_export_obj_header_str(depth)
-        if export_obj_header_str != "":
-            # print "export_obj_header_str = " + export_obj_header_str
-            # print "export_obj_header_str == '.\n' " + str(export_obj_header_str == '.\n')
-            if export_obj_header_str != '.\n':
-                export_str += export_obj_header_str
-            # export_str_list.append(export_obj_header_str)
-
-            if 0 < len(self.get_obj_list()):
-                for obj in self.get_obj_list():
-                    # export_str = '{export_str}{obj}'.format(export_str = export_str,
-                    #                                         obj = obj.export(depth=(depth+1)),
-                    #                                         block_open = '{block_open}',
-                    #                                         block_close = '{block_close}')
-                    export_str = '{export_str}{obj}'.format(export_str = export_str,
-                                                            obj = obj.export(filename=filename,depth=(depth+1)),
-                                                            block_open = '{block_open}',
-                                                            block_close = '{block_close}')
-
-            export_obj_footer_str = self.export_map.get_obj_footer_str(obj = self,
-                                                                       depth = depth)
-            export_str = export_str + export_obj_footer_str
-
-        if depth == 0:
-            fid = open(filename, 'w')
-            # for export_str in export_str_list:
-            #     export_str = export_str.format(block_open = self.export_map.block_open_str,
-            #                                    block_close = self.export_map.block_close_str)
-            #     fid.write(export_str)
-            export_str = export_str.format(block_open = self.export_map.block_open_str,
-                                           block_close = self.export_map.block_close_str)
-            fid.write(export_str)
-            fid.close()
-        else:
-            return export_str
+    def export(self,filename="export.scad",filetype=None):
+        export.write_export_file(self,filename,filetype)
 
     # Placeholder method
     def update_bounding_box(self):

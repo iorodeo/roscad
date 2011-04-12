@@ -52,7 +52,7 @@ class SCADExportMap(object):
                            'extrusion': {'header': 'linear_extrude(file = "{profile}", height = {l:0.5f}, center = true, convexity=10);',
                                     'footer': ''}}
 
-    def get_file_header_str(self,filename,obj):
+    def get_file_header_str(self,obj,filename):
         width = 70
         str0 = self.comment_str + '='*(width-len(self.comment_str)*2) + self.comment_str + '\n'
         # see "http://docs.python.org/library/string.html#formatspec"
@@ -85,15 +85,19 @@ class SCADExportMap(object):
 
         return file_header_str
 
-    def get_obj_str(self,obj):
+    def get_object_str(self,obj):
         primative = obj.get_primative()
         obj_str = ""
         if primative != '':
             if primative in self.object_map:
                 obj_str = self.object_map[primative]['header']
+                dimensions = obj.get_dimensions()
+                dimensions['block_open'] = '{block_open}'
+                dimensions['block_close'] = '{block_close}'
+                obj_str = obj_str.format(**dimensions)
         return obj_str
 
-    def get_obj_header_str(self,obj,depth):
+    def get_object_header_str(self,obj,depth):
         position = obj.get_position()
         rotation = obj.get_rotation()
         scale = obj.get_scale()
@@ -135,7 +139,7 @@ class SCADExportMap(object):
         obj_str += '{obj}\n'
         return obj_str
 
-    def get_obj_footer_str(self,obj,depth):
+    def get_object_footer_str(self,obj,depth):
         primative = obj.get_primative()
         position = obj.get_position()
         rotation = obj.get_rotation()
@@ -180,6 +184,92 @@ class SCADExportMap(object):
         # obj_footer_str = obj_footer_str.format(indent = self.indent_str*depth,
         #                                        block_close = '{block_close}')
         return obj_footer_str
+
+    def get_objects_str(self,obj,depth=0):
+        objects_str = ''
+        obj_str = self.get_object_str(obj)
+        if obj_str != '':
+            obj_header_str = self.get_object_header_str(obj,depth)
+            obj_header_str = obj_header_str.format(block_open = '{block_open}',
+                                                   block_close = '{block_close}',
+                                                   obj = obj_str)
+        else:
+            obj_header_str = ''
+        if obj_header_str != '':
+            objects_str += obj_header_str
+
+            if 0 < len(obj.get_obj_list()):
+                for o in obj.get_obj_list():
+                    objects_str = '{objects_str}{obj}'.format(objects_str = objects_str,
+                                                              obj = self.get_objects_str(o,(depth+1)),
+                                                              block_open = '{block_open}',
+                                                              block_close = '{block_close}')
+            obj_footer_str = self.get_object_footer_str(obj,depth)
+            objects_str += obj_footer_str
+
+
+        if depth == 0:
+            objects_str = objects_str.format(block_open = self.block_open_str,
+                                             block_close = self.block_close_str)
+
+        return objects_str
+        # export_obj_str = self.export_map.get_obj_str(obj=self)
+        # return export_obj_str
+
+        # def get_export_obj_header_str(self,depth):
+        #     export_obj_str = self.get_export_obj_str()
+        #     if export_obj_str != "":
+        #         export_obj_header_str = self.export_map.get_obj_header_str(obj = self,
+        #                                                                    depth = depth)
+        #         export_obj_header_str = export_obj_header_str.format(block_open = '{block_open}',
+        #                                                              block_close = '{block_close}',
+        #                                                              obj = export_obj_str)
+        #     else:
+        #         export_obj_header_str = ""
+        #     return export_obj_header_str
+
+        # if depth == 0:
+        #     # export_str_list = []
+        #     # export_str_list.append(self.export_map.get_file_header_str(filename))
+        #     export_str = self.export_map.get_file_header_str(filename,self)
+        # else:
+        #     export_str = ""
+        # export_obj_header_str = self.get_export_obj_header_str(depth)
+        # if export_obj_header_str != "":
+        #     # print "export_obj_header_str = " + export_obj_header_str
+        #     # print "export_obj_header_str == '.\n' " + str(export_obj_header_str == '.\n')
+        #     if export_obj_header_str != '.\n':
+        #         export_str += export_obj_header_str
+        #     # export_str_list.append(export_obj_header_str)
+
+        #     if 0 < len(self.get_obj_list()):
+        #         for obj in self.get_obj_list():
+        #             # export_str = '{export_str}{obj}'.format(export_str = export_str,
+        #             #                                         obj = obj.export(depth=(depth+1)),
+        #             #                                         block_open = '{block_open}',
+        #             #                                         block_close = '{block_close}')
+        #             export_str = '{export_str}{obj}'.format(export_str = export_str,
+        #                                                     obj = obj.export(filename=filename,depth=(depth+1)),
+        #                                                     block_open = '{block_open}',
+        #                                                     block_close = '{block_close}')
+
+        #     export_obj_footer_str = self.export_map.get_obj_footer_str(obj = self,
+        #                                                                depth = depth)
+        #     export_str = export_str + export_obj_footer_str
+
+        # if depth == 0:
+        #     fid = open(filename, 'w')
+        #     # for export_str in export_str_list:
+        #     #     export_str = export_str.format(block_open = self.export_map.block_open_str,
+        #     #                                    block_close = self.export_map.block_close_str)
+        #     #     fid.write(export_str)
+        #     export_str = export_str.format(block_open = self.export_map.block_open_str,
+        #                                    block_close = self.export_map.block_close_str)
+        #     fid.write(export_str)
+        #     fid.close()
+        # else:
+        #     return export_str
+
 
 if __name__ == "__main__":
     scad_export_map = SCADExportMap()
