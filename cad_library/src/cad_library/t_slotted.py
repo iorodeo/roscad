@@ -222,7 +222,7 @@ class Extrusion(fso.Extrusion):
     def __set_bom(self):
         scale = self.get_scale()
         BOM = bom.BOMObject()
-        BOM.set_parameter('name',(self.profile_name + '-' + '{l:0.3f}'.format(l=self.l*scale[2])))
+        BOM.set_parameter('name',(self.profile_name + '-' + '{l:07.3f}'.format(l=self.l*scale[2])))
         BOM.set_parameter('description','T-Slotted Extrusion')
         BOM.set_parameter('dimensions','l: {l:0.3f}'.format(l=self.l*scale[2]))
         BOM.set_parameter('vendor','Prime Resource')

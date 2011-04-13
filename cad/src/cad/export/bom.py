@@ -82,7 +82,7 @@ class BOMExportMap(object):
 
         self.block_close_str = ""
 
-        self.item_str = '| | {item_number} | {name} | {description} | {dimensions} | {vendor} | {part_number} | {quantity} | {cost} |\n'
+        self.item_str = '| | {item_number} | {name} | {description} | {dimensions} | {vendor} | {part_number} | {quantity} | {cost:.2f} |\n'
 
     def get_file_header_str(self,obj,filename):
         width = 70
@@ -97,33 +97,21 @@ class BOMExportMap(object):
                          textwrap.wrap(str2, width=width-(len(self.comment_str)*2 + 1)))
         file_header_str = str_ + str0 + str1 + str2 + '\n' + str0 + '\n'
 
-        try:
-            bom = obj.get_object_parameter('bom')
-        except KeyError:
-            bom = BOMObject()
-
-        bom_header = '| ! '
-        for item in bom.get_parameters_key_list():
-            bom_header += '| {item} '.format(item = item)
-        if bom_header != '':
-            bom_header += '|\n|-\n'
-        file_header_str += bom_header
-
         return file_header_str
 
-    def convert_bom_to_str(self,bom):
-        bom_str = ''
-        if bom != {}:
-            bom_str = self.item_str.format(item_number = bom.get_parameter('item number'),
-                                           name = bom.get_parameter('name'),
-                                           description = bom.get_parameter('description'),
-                                           dimensions = bom.get_parameter('dimensions'),
-                                           vendor = bom.get_parameter('vendor'),
-                                           part_number = bom.get_parameter('part number'),
-                                           quantity = bom.get_parameter('quantity'),
-                                           cost = bom.get_parameter('cost'),
+    def convert_item_to_str(self,item):
+        item_str = ''
+        if item != {}:
+            item_str = self.item_str.format(item_number = item.get_parameter('item number'),
+                                           name = item.get_parameter('name'),
+                                           description = item.get_parameter('description'),
+                                           dimensions = item.get_parameter('dimensions'),
+                                           vendor = item.get_parameter('vendor'),
+                                           part_number = item.get_parameter('part number'),
+                                           quantity = item.get_parameter('quantity'),
+                                           cost = item.get_parameter('cost'),
                                            )
-        return bom_str
+        return item_str
 
     def get_object_bom(self,obj):
         try:
@@ -132,35 +120,69 @@ class BOMExportMap(object):
             bom = {}
         return bom
 
-    def fill_bom_dict(self,obj,bom_dict={}):
+    def fill_item_dict(self,obj,item_dict={}):
         bom = self.get_object_bom(obj)
         if bom != {}:
             name = bom.get_parameter('name')
-            if name in bom_dict.keys():
-                item = bom_dict[name]
+            if name in item_dict.keys():
+                item = item_dict[name]
                 quantity = item.get_parameter('quantity')
                 if quantity == '':
                     quantity = 1
                 quantity += 1
                 item.set_parameter('quantity',quantity)
-                bom_dict[name] = item
+                item_dict[name] = item
             else:
-                bom_dict[name] = bom
+                item_dict[name] = bom
         for o in obj.get_obj_list():
-            bom_dict = self.fill_bom_dict(o,bom_dict)
-        return bom_dict
+            item_dict = self.fill_item_dict(o,item_dict)
+        return item_dict
+
+    def sort_item_dict(self,item_dict):
+        vendor_list = []
+        for key in item_dict.keys():
+            vendor_list.append(item_dict[key].get_parameter('vendor'))
+        vendor_list = list(set(vendor_list))
+        vendor_list.sort()
+        item_dict_sorted = {}
+        item_number = 1
+        for vendor in vendor_list:
+            name_list = []
+            for key,value in item_dict.iteritems():
+                ven = value.get_parameter('vendor')
+                if ven == vendor:
+                    name = value.get_parameter('name')
+                    name_list.append(name)
+            name_list.sort()
+            for name in name_list:
+                item = item_dict[name]
+                item.set_parameter('item number',item_number)
+                item_dict_sorted[item_number] = item
+                item_number += 1
+
+        return item_dict_sorted
 
     def get_objects_str(self,obj,depth=0):
-        bom_dict = self.fill_bom_dict(obj)
+        item_dict = self.fill_item_dict(obj)
+        item_dict = self.sort_item_dict(item_dict)
         objects_str = ''
-        colnum_list = []
-        for key in bom_dict.keys():
-            objects_str += self.convert_bom_to_str(bom_dict[key])
-            colnum_list.append(len(bom_dict[key].get_parameters_key_list()))
-        colnum = min(colnum_list)
+        column_name_list = []
+        item_dict_keys = item_dict.keys()
+        item_dict_keys.sort()
+        for key in item_dict_keys:
+            item = item_dict[key]
+            objects_str += self.convert_item_to_str(item)
+            item_key_list = item.get_parameters_key_list()
+            [column_name_list.append(column_name) for column_name in item_key_list if column_name not in column_name_list]
+
+        table_header = '| ! '
+        for column_name in column_name_list:
+            table_header += '| {column_name} '.format(column_name = column_name)
+        table_header += '|\n|-\n'
+        objects_str = table_header + objects_str
 
         objects_str += '|-\n| # '
-        objects_str += '| '*(colnum - 2)
+        objects_str += '| '*(len(column_name_list) - 2)
         objects_str += '| total |'
         objects_str += ':=(@I$quantity..@II$quantity)*(@I$cost..@II$cost);%.2f;N'
 
