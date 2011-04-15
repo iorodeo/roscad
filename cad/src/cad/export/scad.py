@@ -107,8 +107,14 @@ class SCADExportMap(object):
             color = parameters['color']
         else:
             color = []
+        if 'slice' in parameters:
+            slice = parameters['slice']
+        else:
+            slice = False
         angles = [a*(180/math.pi) for a in rotation]
-        obj_str = "{indent}{translate}{rotate}{scale}{color}"
+
+        obj_str = "{indent}{slice}{translate}{rotate}{scale}{color}"
+
         if not numpy.allclose(position,[0,0,0]):
             translate_str = "translate(v=[{position[0]:0.5f},{position[1]:0.5f},{position[2]:0.5f}]){block_open} "
         else:
@@ -125,8 +131,13 @@ class SCADExportMap(object):
             color_str = "color([{color[0]:0.5f},{color[1]:0.5f},{color[2]:0.5f},{color[3]:0.5f}]){block_open} "
         else:
             color_str = ""
-        # obj_str = "{indent}translate(v=[{position[0]:0.5f},{position[1]:0.5f},{position[2]:0.5f}]){block_open} rotate(a=[{angle[0]:0.5f},{angle[1]:0.5f},{angle[2]:0.5f}]){block_open} scale(v=[{scale[0]:0.5f},{scale[1]:0.5f},{scale[2]:0.5f}]){block_open} color([{color[0]:0.5f},{color[1]:0.5f},{color[2]:0.5f},{color[3]:0.5f}]){block_open} {obj}\n"
+        if slice:
+            slice_str = "projection(cut=true){block_open} "
+        else:
+            slice_str = ""
+
         obj_str = obj_str.format(indent = self.indent_str*depth,
+                                 slice = slice_str,
                                  translate = translate_str,
                                  rotate = rotate_str,
                                  scale = scale_str,
@@ -150,8 +161,15 @@ class SCADExportMap(object):
             color = parameters['color']
         else:
             color = []
+        if 'slice' in parameters:
+            slice = parameters['slice']
+        else:
+            slice = False
+
         angles = [a*(180/math.pi) for a in rotation],
-        obj_footer_str = "{indent}{translate}{rotate}{scale}{color}{obj_footer}\n"
+
+        obj_footer_str = "{indent}{slice}{translate}{rotate}{scale}{color}{obj_footer}\n"
+
         if not numpy.allclose(position,[0,0,0]):
             translate_str = "{block_close}"
         else:
@@ -168,6 +186,10 @@ class SCADExportMap(object):
             color_str = "{block_close}"
         else:
             color_str = ""
+        if slice:
+            slice_str = "{block_close}"
+        else:
+            slice_str = ""
 
         footer_str = ""
         if primative != '':
@@ -175,6 +197,7 @@ class SCADExportMap(object):
                 footer_str = self.object_map[primative]['footer']
 
         obj_footer_str = obj_footer_str.format(indent = self.indent_str*depth,
+                                               slice = slice_str,
                                                translate = translate_str,
                                                rotate = rotate_str,
                                                scale = scale_str,
