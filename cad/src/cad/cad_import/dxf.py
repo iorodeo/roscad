@@ -19,6 +19,8 @@ roslib.load_manifest('cad')
 import numpy
 from matplotlib.collections import LineCollection
 import pylab
+import math
+import copy
 
 from shapely.geometry import *
 from shapely.ops import *
@@ -130,16 +132,19 @@ def get_fragment_count(radius,fn=0,fs=1,fa=12):
 def arc_to_lines(arc,fn=0,fs=1,fa=12,decimals=5):
     center = arc.loc
     start_angle = cf.degrees_to_radians(arc.start_angle)
-    end_angle = cf.degrees_to_radians(arc.end_angle)
+    end_angle = cf.degrees_to_radians(arc.end_angle) + 2*math.pi
+    # start_angle = cf.degrees_to_radians(arc.end_angle)
+    # end_angle = cf.degrees_to_radians(arc.start_angle)
     radius = arc.radius
     fragment_count = get_fragment_count(radius,fn,fs,fa)
-    print "fragment_count = " + str(fragment_count)
-    print "start_angle = " + str(start_angle)
-    print "end_angle = " + str(end_angle)
-    angle_inc = cf.circle_dist(start_angle,end_angle)/fragment_count
+    # print "fragment_count = " + str(fragment_count)
+    # print "start_angle = " + str(start_angle)
+    # print "end_angle = " + str(end_angle)
+    angle_inc = ((end_angle - start_angle)%(2*math.pi))/fragment_count
+    # angle_inc = cf.circle_dist(start_angle,end_angle)/fragment_count
     # print "angle_inc = " + str(angle_inc)
     angle = start_angle
-    lines = []
+    arc_lines = []
     count = 0
     while count < fragment_count:
         # print angle
@@ -151,34 +156,83 @@ def arc_to_lines(arc,fn=0,fs=1,fa=12,decimals=5):
         if len(arc.loc) == 3:
             point1.append(arc.loc[2])
         line = [point0,point1]
-        lines.append(line)
+        arc_lines.append(line)
         count += 1
     # print angle
-    # print lines
+    # print arc_lines
+    return arc_lines
+
+def circle_to_lines(circle,fn=0,fs=1,fa=12,decimals=5):
+    center = circle.loc
+    start_angle = 0
+    end_angle = 2*math.pi
+    radius = circle.radius
+    fragment_count = get_fragment_count(radius,fn,fs,fa)
+    angle_inc = 2*math.pi/fragment_count
+    angle = start_angle
+    circle_lines = []
+    count = 0
+    while count < fragment_count:
+        point0 = cf.polar_to_cartesean(center=center,radius=radius,angle=angle,decimals=decimals)
+        if len(circle.loc) == 3:
+            point0.append(circle.loc[2])
+        angle += angle_inc
+        point1 = cf.polar_to_cartesean(center=center,radius=radius,angle=angle,decimals=decimals)
+        if len(circle.loc) == 3:
+            point1.append(circle.loc[2])
+        line = [point0,point1]
+        circle_lines.append(line)
+        count += 1
+    return circle_lines
+
+def round_numbers_in_lines(lines_original,decimals):
+    lines = copy.deepcopy(lines_original)
+    for line_index in range(len(lines)):
+        line = lines[line_index]
+        for point_index in range(len(line)):
+            point = line[point_index]
+            for number_index in range(len(point)):
+                number = point[number_index]
+                # print "original number = " + str(number)
+                number = round(number,decimals)
+                # print "rounded number = " + str(number)
+                lines[line_index][point_index][number_index] = number
     return lines
 
-def import_dxf(filename):
-    drawing = dxf_reader.readDXF(filename)
-    lines = []
+def import_dxf(file,fn=0,fs=1,fa=12,decimals=5,close_gaps=False):
+    drawing = dxf_reader.readDXF(file)
+    polygonized = False
 
+    while (not polygonized) and (0 <= decimals):
+        try:
+            lines = []
+
+            for item in drawing.entities.data:
+                # print item
+                if item.type == 'line':
+                    lines.append(item.points)
+                elif item.type == 'arc':
+                    arc_lines = arc_to_lines(item,fn,fs,fa,decimals)
+                    lines.extend(arc_lines)
+
+            lines_rounded = round_numbers_in_lines(lines,decimals)
+            polygons_iterator = polygonize(lines_rounded)
+            polygons = [polygon for polygon in polygons_iterator]
+            polygonized = True
+        except ValueError:
+            # print "Failed, using decimals value: " + str(decimals)
+            decimals -= 1
+            # print "Trying again using decimals value: " + str(decimals)
+
+    # For some reason, it seems that circles need to be done separately
     for item in drawing.entities.data:
-        # print item
-        if item.type == 'line':
-            lines.append(item.points)
-        elif item.type == 'arc':
-            arc_lines = arc_to_lines(item)
-            lines.extend(arc_lines)
-    # for arc in drawing.entities.get_type('arc'):
-    #     arc_lines = arc_to_lines(arc)
-    #     lines.extend(arc_lines)
-    # for line in drawing.entities.get_type('line'):
-    #     lines.append(line.points)
-    # print lines
-    # print '**************************************'
-    # lines_ordered = order_lines(lines)
-    # print lines_ordered
-    plot_lines(lines)
-    polygons = polygonize(lines)
+        if item.type == 'circle':
+            circle_lines = circle_to_lines(item,fn,fs,fa,decimals)
+            polygons_iterator = polygonize(circle_lines)
+            circle_polygon = [polygon for polygon in polygons_iterator]
+            polygons.extend(circle_polygon)
+
+    # plot_lines(lines_rounded)
     return polygons
 
 if __name__ == "__main__":
@@ -195,5 +249,6 @@ if __name__ == "__main__":
     # profile = import_dxf('upper_right.dxf')
     # profile = import_dxf('lower_right.dxf')
     # profile = import_dxf('box_holes.dxf')
-    for polygon in profile:
-        print polygon
+    # print list(profile.geoms)
+    # for polygon in profile:
+    #     print polygon

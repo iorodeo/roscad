@@ -17,36 +17,40 @@ from __future__ import division
 import roslib
 roslib.load_manifest('cad_library')
 import rospy
-import cad.csg_objects as csg
-import cad.finite_solid_objects as fso
-import cad.pattern_objects as po
-import cad.export.bom as bom
 
+import os
+import sys
 import math
 import copy
 import numpy
 
+import cad.csg_objects as csg
+import cad.finite_solid_objects as fso
+import cad.pattern_objects as po
+import cad.export.bom as bom
+import cad.cad_import.dxf as dxf
+
 
 # Data for profiles
 EXTRUSION_DXF = {
-    '1010'            : 't_slotted/extrusion/1010.dxf',
-    '1020'            : 't_slotted/extrusion/1020.dxf',
-    '1030'            : 't_slotted/extrusion/1030.dxf',
-    '2040'            : 't_slotted/extrusion/2040.dxf',
-    '1545'            : 't_slotted/extrusion/1545.dxf',
-    '3030'            : 't_slotted/extrusion/3030.dxf',
-    '3060'            : 't_slotted/extrusion/3060.dxf',
+    '1010'            : '/t_slotted/extrusion/1010.dxf',
+    '1020'            : '/t_slotted/extrusion/1020.dxf',
+    '1030'            : '/t_slotted/extrusion/1030.dxf',
+    '2040'            : '/t_slotted/extrusion/2040.dxf',
+    '1545'            : '/t_slotted/extrusion/1545.dxf',
+    '3030'            : '/t_slotted/extrusion/3030.dxf',
+    '3060'            : '/t_slotted/extrusion/3060.dxf',
     }
 
 LBRACKET_DXF = {
-    '1010'            : 't_slotted/lbracket/1010.dxf',
-    # '1020'            : 't_slotted/lbracket/1020.dxf',
-    # '1030'            : 't_slotted/lbracket/1030.dxf',
-    '2020'            : 't_slotted/lbracket/2020.dxf',
-    # '2040'            : 't_slotted/lbracket/2040.dxf',
-    # '1545'            : 't_slotted/lbracket/1545.dxf',
-    # '3030'            : 't_slotted/lbracket/3030.dxf',
-    # '3060'            : 't_slotted/lbracket/3060.dxf',
+    '1010'            : '/t_slotted/lbracket/1010.dxf',
+    # '1020'            : '/t_slotted/lbracket/1020.dxf',
+    # '1030'            : '/t_slotted/lbracket/1030.dxf',
+    '2020'            : '/t_slotted/lbracket/2020.dxf',
+    # '2040'            : '/t_slotted/lbracket/2040.dxf',
+    # '1545'            : '/t_slotted/lbracket/1545.dxf',
+    # '3030'            : '/t_slotted/lbracket/3030.dxf',
+    # '3060'            : '/t_slotted/lbracket/3060.dxf',
     }
 
 DATA_1010 = {
@@ -187,6 +191,7 @@ class Extrusion(fso.Extrusion):
         dimension_list.sort()
         dimension_0 = "{dimension:0.1f}".format(dimension=dimension_list[0])
         dimension_1 = "{dimension:0.1f}".format(dimension=dimension_list[1])
+
         profile = PROFILE_DIMENSION_MAP[dimension_0][dimension_1]
         # print profile
         self.l = dimension_list[2]
@@ -197,7 +202,12 @@ class Extrusion(fso.Extrusion):
         else:
             profile_dxf = ''
 
-        super(Extrusion, self).__init__(profile=profile_dxf,l=self.l)
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+
+        profile_dxf_file_object = open(script_dir + profile_dxf)
+        profile_polygons = dxf.import_dxf(profile_dxf_file_object)
+
+        super(Extrusion, self).__init__(profile=profile_polygons,l=self.l)
 
         if dimensions['x'] == dimension_list[0]:
             if dimensions['z'] < dimensions['y']:
@@ -296,7 +306,13 @@ class LBracket(csg.Difference):
 
     def __make_bracket(self):
         l = self.profile_data['lbracket'][self.bracket_type]['l']
-        bracket = fso.Extrusion(profile=self.profile_dxf,l=l)
+
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        profile_dxf_file_object = open(script_dir + self.profile_dxf)
+        profile_polygons = dxf.import_dxf(profile_dxf_file_object)
+        bracket = fso.Extrusion(profile=profile_polygons,l=l)
+
+        # bracket = fso.Extrusion(profile=self.profile_dxf,l=l)
         self.add_obj(bracket)
 
     def __make_holes(self):

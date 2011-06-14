@@ -27,6 +27,7 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+import os
 
 from dxf_import_objects import *
 
@@ -328,7 +329,7 @@ def error(cargo):
         print err
         return False
 
-def readDXF(filename):
+def readDXF(infile):
         """Given a file name try to read it as a dxf file.
 
         Output is an object with the following structure
@@ -348,7 +349,7 @@ def readDXF(filename):
         where foo data is a list of sub-objects.  True object data
         is of the form [code, data].
 """
-        infile = open(filename)
+        # infile = open(filename)
 
         sm = StateMachine()
         sm.add_state(error, True)
@@ -360,6 +361,7 @@ def readDXF(filename):
         try:
                 drawing = sm.run(infile)
                 if drawing:
+                        filename = os.path.basename(infile.name)
                         drawing.name = filename
                         for obj in drawing.data:
                                 item, name = get_name(obj.data)
@@ -378,7 +380,8 @@ if __name__ == "__main__":
         # filename = r"rectangle_rounded.dxf"
         # filename = r"rectangle.dxf"
         filename = r"rectangulartube.dxf"
-        drawing = readDXF(filename)
+        file = open(filename)
+        drawing = readDXF(file)
         for line in drawing.entities.get_type('line'):
                 print line
         for arc in drawing.entities.get_type('arc'):
