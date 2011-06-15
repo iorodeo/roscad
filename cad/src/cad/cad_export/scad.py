@@ -49,8 +49,8 @@ class SCADExportMap(object):
                                         'footer': ''},
                            'cone': {'header': 'cylinder(h = {l:0.5f}, r1 = {r_neg:0.5f}, r2 = {r_pos:0.5f}, center = true);',
                                     'footer': ''},
-                           'extrusion': {'header': 'linear_extrude(file = "{profile}", height = {l:0.5f}, center = true, convexity=10);',
-                                    'footer': ''}}
+                           'extrusion': {'header': 'linear_extrude(height = {l:0.5f}, center = true, convexity=10, twist=0) {block_open} polygon(points={points}, paths={paths});',
+                                    'footer': '{block_close}'}}
 
     def get_file_header_str(self,obj,filename):
         width = 70

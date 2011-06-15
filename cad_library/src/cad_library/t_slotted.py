@@ -27,7 +27,7 @@ import numpy
 import cad.csg_objects as csg
 import cad.finite_solid_objects as fso
 import cad.pattern_objects as po
-import cad.export.bom as bom
+import cad.cad_export.bom as bom
 import cad.cad_import.dxf as dxf
 
 
@@ -205,9 +205,9 @@ class Extrusion(fso.Extrusion):
         script_dir = os.path.dirname(os.path.realpath(__file__))
 
         profile_dxf_file_object = open(script_dir + profile_dxf)
-        profile_polygons = dxf.import_dxf(profile_dxf_file_object)
+        polygons = dxf.import_dxf(profile_dxf_file_object)
 
-        super(Extrusion, self).__init__(profile=profile_polygons,l=self.l)
+        super(Extrusion, self).__init__(polygons=polygons,l=self.l)
 
         if dimensions['x'] == dimension_list[0]:
             if dimensions['z'] < dimensions['y']:
@@ -309,8 +309,8 @@ class LBracket(csg.Difference):
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
         profile_dxf_file_object = open(script_dir + self.profile_dxf)
-        profile_polygons = dxf.import_dxf(profile_dxf_file_object)
-        bracket = fso.Extrusion(profile=profile_polygons,l=l)
+        polygons = dxf.import_dxf(profile_dxf_file_object)
+        bracket = fso.Extrusion(polygons=polygons,l=l)
 
         # bracket = fso.Extrusion(profile=self.profile_dxf,l=l)
         self.add_obj(bracket)

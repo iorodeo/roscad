@@ -22,8 +22,8 @@ import pylab
 import math
 import copy
 
-from shapely.geometry import *
-from shapely.ops import *
+import shapely.geometry
+import shapely.ops
 
 import dxf_reader
 import cad_utilities.circle_functions as cf
@@ -98,7 +98,50 @@ def plot_lines(lines):
     pylab.show()
     # savefig('matplotlib-153.svg')
 
+# def plot_polygons(polygons):
+#     # print lines
+#     lines = numpy.array(convert_3D_to_2D(lines))
+#     # print lines
+#     x = numpy.array(x_from_lines(lines))
+#     y = numpy.array(y_from_lines(lines))
+#     # print x
+#     line_segments = LineCollection(lines)
 
+#     # In order to efficiently plot many lines in a single set of axes,
+#     # Matplotlib has the ability to add the lines all at once. Here is a
+#     # simple example showing how it is done.
+
+#     # N = 50
+#     # x = arange(N)
+#     # Here are many sets of y to plot vs x
+#     # ys = [x+i for i in x]
+
+#     # We need to set the plot limits, they will not autoscale
+#     ax = pylab.axes()
+#     ax.set_xlim((1.1*pylab.amin(x),1.1*pylab.amax(x)))
+#     ax.set_ylim((1.1*pylab.amin(pylab.amin(y)),1.1*pylab.amax(pylab.amax(y))))
+
+#     # colors is sequence of rgba tuples
+#     # linestyle is a string or dash tuple. Legal string values are
+#     #          solid|dashed|dashdot|dotted.  The dash tuple is (offset, onoffseq)
+#     #          where onoffseq is an even length tuple of on and off ink in points.
+#     #          If linestyle is omitted, 'solid' is used
+#     # See matplotlib.collections.LineCollection for more information
+
+#     # line_segments = LineCollection([zip(x,y) for y in ys], # Make a sequence of x,y pairs
+#     #                                 linewidths    = (0.5,1,1.5,2),
+#     #                                 linestyles = 'solid')
+#     line_segments.set_array(x)
+#     ax.add_collection(line_segments)
+#     fig = pylab.gcf()
+#     axcb = fig.colorbar(line_segments)
+#     axcb.set_label('Line Number')
+#     ax.set_title('Line Collection with mapped colors using matplotlib')
+#     # sci(line_segments) # This allows interactive changing of the colormap.
+#     pylab.axis('equal')
+#     pylab.savefig('lineplot')
+#     pylab.show()
+#     # savefig('matplotlib-153.svg')
 
 # int get_fragments_from_r(double r, double fn, double fs, double fa)
 # {
@@ -214,9 +257,12 @@ def import_dxf(file,fn=0,fs=1,fa=12,decimals=5,close_gaps=False):
                 elif item.type == 'arc':
                     arc_lines = arc_to_lines(item,fn,fs,fa,decimals)
                     lines.extend(arc_lines)
+                # elif item.type == 'circle':
+                #     circle_lines = circle_to_lines(item,fn,fs,fa,decimals)
+                #     lines.extend(circle_lines)
 
             lines_rounded = round_numbers_in_lines(lines,decimals)
-            polygons_iterator = polygonize(lines_rounded)
+            polygons_iterator = shapely.ops.polygonize(lines_rounded)
             polygons = [polygon for polygon in polygons_iterator]
             polygonized = True
         except ValueError:
@@ -228,9 +274,12 @@ def import_dxf(file,fn=0,fs=1,fa=12,decimals=5,close_gaps=False):
     for item in drawing.entities.data:
         if item.type == 'circle':
             circle_lines = circle_to_lines(item,fn,fs,fa,decimals)
-            polygons_iterator = polygonize(circle_lines)
-            circle_polygon = [polygon for polygon in polygons_iterator]
-            polygons.extend(circle_polygon)
+            polygons_iterator = shapely.ops.polygonize(circle_lines)
+            try:
+                circle_polygon = [polygon for polygon in polygons_iterator]
+                polygons.extend(circle_polygon)
+            except ValueError:
+                pass
 
     # plot_lines(lines_rounded)
     return polygons

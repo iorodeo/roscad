@@ -14,7 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import copy
+import shapely.geometry
+import shapely.ops
+from shapely.geometry.polygon import LinearRing
+
 import csg_objects
+
 
 class _FiniteSolidObject(csg_objects.CSGObject):
     def __init__(self):
@@ -83,7 +88,7 @@ class Cone(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cone, self).__init__()
         self.dimensions_default = {'l': 1, 'r_pos': 0.1, 'r_neg': 0.5}
-        self.set_dimensions_(args,kwargs)
+        self.set_dimensions(args,kwargs)
         self.set_exportable(True)
         self.set_primative('cone')
 
@@ -96,15 +101,37 @@ class Cone(_FiniteSolidObject):
 class Extrusion(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Extrusion, self).__init__()
-        self.dimensions_default = {'l': 1, 'profile': '', 'x': 1, 'y': 1}
+        self.dimensions_default = {'l': 1, 'polygons': [], 'points': [], 'paths': []}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('extrusion')
         self.bounding_box = Box()
 
+    def get_points_paths_from_polygons(self,polygons):
+        points = []
+        paths = []
+        point_index = 0
+        for polygon in polygons:
+            coords = polygon.exterior.coords
+            coord_list = [list(coord) for coord in coords]
+            points.extend(coord_list)
+            path = range(len(coord_list))
+            path = [point + point_index for point in path]
+            paths.append(path)
+            point_index = path[-1] + 1
+        return points,paths
+
+    def set_dimensions_(self,args,kwargs):
+        if kwargs.has_key('polygons') and ((not kwargs.has_key('points')) or (not kwargs.has_key('paths'))):
+            polygons = kwargs['polygons']
+            points,paths = self.get_points_paths_from_polygons(polygons)
+            kwargs['points'] = points
+            kwargs['paths'] = paths
+        super(Extrusion, self).set_dimensions_(args,kwargs)
+
     def update_bounding_box(self):
         dimensions = self.get_dimensions()
-        super(Extrusion, self).update_bounding_box(x=dimensions['x'],y=dimensions['y'],z=dimensions['l'])
+        super(Extrusion, self).update_bounding_box(x=1,y=1,z=dimensions['l'])
 
 
 if __name__ == "__main__":

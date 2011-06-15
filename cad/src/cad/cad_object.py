@@ -19,7 +19,7 @@ import math
 import re
 import random
 
-import export.export as export
+import cad_export.export as export
 
 
 class CADObject(object):
