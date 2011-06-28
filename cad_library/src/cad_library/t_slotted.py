@@ -205,9 +205,8 @@ class Extrusion(fso.Extrusion):
         script_dir = os.path.dirname(os.path.realpath(__file__))
 
         profile_dxf_file_object = open(script_dir + profile_dxf)
-        polygons = dxf.import_dxf(profile_dxf_file_object)
-
-        super(Extrusion, self).__init__(polygons=polygons,l=self.l)
+        polygons,decimals = dxf.import_dxf(profile_dxf_file_object)
+        super(Extrusion, self).__init__(polygons=polygons,decimals=decimals,l=self.l)
 
         if dimensions['x'] == dimension_list[0]:
             if dimensions['z'] < dimensions['y']:
@@ -309,8 +308,8 @@ class LBracket(csg.Difference):
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
         profile_dxf_file_object = open(script_dir + self.profile_dxf)
-        polygons = dxf.import_dxf(profile_dxf_file_object)
-        bracket = fso.Extrusion(polygons=polygons,l=l)
+        polygons,decimals = dxf.import_dxf(profile_dxf_file_object)
+        bracket = fso.Extrusion(polygons=polygons,decimals=decimals,l=l)
 
         # bracket = fso.Extrusion(profile=self.profile_dxf,l=l)
         self.add_obj(bracket)
@@ -364,17 +363,18 @@ class LBracket(csg.Difference):
         return copy.deepcopy(data)
 
 if __name__ == "__main__":
-    import origin
-    o = origin.Origin()
+    # import origin
+    # o = origin.Origin()
 
-    # beam = Extrusion(x=2,y=1,z=6)
+    beam = Extrusion(x=2,y=1,z=6)
+    # beam = Extrusion(x=1,y=1,z=6)
     # beam = Extrusion(x=14,y=2,z=4)
     # beam = beam | o
-    # beam.export()
+    beam.export()
 
-    bracket = LBracket(x=-1,y=2,z=1,extrusion_axis=[0,1,0])
-    bracket = bracket | o
-    bracket.export()
+    # bracket = LBracket(x=-1,y=2,z=1,extrusion_axis=[0,1,0])
+    # bracket = bracket | o
+    # bracket.export()
 
 
 

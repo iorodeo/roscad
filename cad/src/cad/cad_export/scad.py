@@ -21,6 +21,26 @@ import textwrap
 import numpy
 
 
+class SCADPoints(object):
+    def __init__(self,points,decimals=5):
+        self.points = points
+        self.decimals = decimals
+
+    def __str__(self):
+        return_str = "["
+        for point in self.points:
+            return_str += "["
+            for number in point:
+                number_format_str = "{number:." + str(self.decimals) + "f}"
+                number_str = number_format_str.format(number=number)
+                return_str += number_str
+                return_str += ","
+            return_str = return_str[:-1]
+            return_str += "],"
+        return_str = return_str[:-1]
+        return_str += "]"
+        return return_str
+
 class SCADExportMap(object):
     def __init__(self,obj):
         self.indent_str = " "*4
@@ -85,15 +105,30 @@ class SCADExportMap(object):
 
         return file_header_str
 
+    def get_dimensions_from_extrusion(self,obj):
+        dimensions = obj.get_dimensions()
+        profile = obj.get_profile()
+        points = profile.get_points()
+        decimals = profile.get_decimals()
+        scad_points = SCADPoints(points,decimals)
+        dimensions['points'] = scad_points
+        paths = profile.get_paths()
+        dimensions['paths'] = paths
+        return dimensions
+
     def get_object_str(self,obj):
         primative = obj.get_primative()
         obj_str = ""
         if primative != '':
             if primative in self.object_map:
-                obj_str = self.object_map[primative]['header']
-                dimensions = obj.get_dimensions()
+                if primative == 'extrusion':
+                    dimensions = self.get_dimensions_from_extrusion(obj)
+                else:
+                    dimensions = obj.get_dimensions()
+
                 dimensions['block_open'] = '{block_open}'
                 dimensions['block_close'] = '{block_close}'
+                obj_str = self.object_map[primative]['header']
                 obj_str = obj_str.format(**dimensions)
         return obj_str
 

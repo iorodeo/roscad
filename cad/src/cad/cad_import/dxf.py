@@ -262,6 +262,8 @@ def import_dxf(file,fn=0,fs=1,fa=12,decimals=5,close_gaps=False):
                 #     lines.extend(circle_lines)
 
             lines_rounded = round_numbers_in_lines(lines,decimals)
+            # print "lines_rounded = "
+            # print lines_rounded
             polygons_iterator = shapely.ops.polygonize(lines_rounded)
             polygons = [polygon for polygon in polygons_iterator]
             polygonized = True
@@ -282,7 +284,7 @@ def import_dxf(file,fn=0,fs=1,fa=12,decimals=5,close_gaps=False):
                 pass
 
     # plot_lines(lines_rounded)
-    return polygons
+    return polygons,decimals
 
 if __name__ == "__main__":
     # profile = import_dxf('rectangle.dxf')

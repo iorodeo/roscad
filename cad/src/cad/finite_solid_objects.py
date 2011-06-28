@@ -14,39 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import copy
-import shapely.geometry
-import shapely.ops
-from shapely.geometry.polygon import LinearRing
 
-import csg_objects
+import geometric_objects
+import finite_patch_objects
 
 
-class _FiniteSolidObject(csg_objects.CSGObject):
-    def __init__(self):
-        super(_FiniteSolidObject, self).__init__()
-        self.dimensions = {}
-        self.dimensions_default = {}
-        self.set_color()
-
-    def set_dimensions(self,*args,**kwargs):
-        self.set_dimensions_(args,kwargs)
-        self.update_bounding_box()
-
-    def set_dimensions_(self,args,kwargs):
-        self.dimensions = self.fill_variable_with_args(args,kwargs,self.dimensions_default)
-
-    def get_dimensions(self):
-        return copy.deepcopy(self.dimensions)
-
-    def get_obj_str(self,depth=0):
-        obj_str_header = super(_FiniteSolidObject, self).get_obj_str(depth)
-        obj_str = '{indent}dimensions = \n{indent}{dimensions:s}\n'
-        obj_str = obj_str.format(indent = self.get_object_parameter('indent_str')*depth,
-                                 dimensions = str(self.get_dimensions()))
-        obj_str = obj_str_header + obj_str
-        return obj_str
-
-class Box(_FiniteSolidObject):
+class Box(geometric_objects.GeometricObject):
     def __init__(self,*args,**kwargs):
         super(Box, self).__init__()
         self.dimensions_default = {'x': 1, 'y': 1, 'z': 1}
@@ -58,7 +31,7 @@ class Box(_FiniteSolidObject):
         dimensions = self.get_dimensions()
         super(Box, self).update_bounding_box(dimensions)
 
-class Sphere(_FiniteSolidObject):
+class Sphere(geometric_objects.GeometricObject):
     def __init__(self,*args,**kwargs):
         super(Sphere, self).__init__()
         self.dimensions_default = {'r': 0.5}
@@ -71,7 +44,7 @@ class Sphere(_FiniteSolidObject):
         diameter = dimensions['r']*2
         super(Sphere, self).update_bounding_box(x=diameter,y=diameter,z=diameter)
 
-class Cylinder(_FiniteSolidObject):
+class Cylinder(geometric_objects.GeometricObject):
     def __init__(self,*args,**kwargs):
         super(Cylinder, self).__init__()
         self.dimensions_default = {'l': 1, 'r': 0.5}
@@ -84,7 +57,7 @@ class Cylinder(_FiniteSolidObject):
         diameter = dimensions['r']*2
         super(Cylinder, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
-class Cone(_FiniteSolidObject):
+class Cone(geometric_objects.GeometricObject):
     def __init__(self,*args,**kwargs):
         super(Cone, self).__init__()
         self.dimensions_default = {'l': 1, 'r_pos': 0.1, 'r_neg': 0.5}
@@ -98,35 +71,24 @@ class Cone(_FiniteSolidObject):
         diameter = r_max*2
         super(Cone, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
-class Extrusion(_FiniteSolidObject):
+class Extrusion(geometric_objects.GeometricObject):
     def __init__(self,*args,**kwargs):
         super(Extrusion, self).__init__()
-        self.dimensions_default = {'l': 1, 'polygons': [], 'points': [], 'paths': []}
+        self.dimensions_default = {'l': 1, 'profile': []}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('extrusion')
         self.bounding_box = Box()
 
-    def get_points_paths_from_polygons(self,polygons):
-        points = []
-        paths = []
-        point_index = 0
-        for polygon in polygons:
-            coords = polygon.exterior.coords
-            coord_list = [list(coord) for coord in coords]
-            points.extend(coord_list)
-            path = range(len(coord_list))
-            path = [point + point_index for point in path]
-            paths.append(path)
-            point_index = path[-1] + 1
-        return points,paths
+    def get_profile(self):
+        return self.get_dimension('profile')
 
     def set_dimensions_(self,args,kwargs):
-        if kwargs.has_key('polygons') and ((not kwargs.has_key('points')) or (not kwargs.has_key('paths'))):
-            polygons = kwargs['polygons']
-            points,paths = self.get_points_paths_from_polygons(polygons)
-            kwargs['points'] = points
-            kwargs['paths'] = paths
+        if kwargs.has_key('polygons') and (not kwargs.has_key('profile')):
+            if kwargs.has_key('decimals'):
+                kwargs['profile'] = finite_patch_objects.Polygon(polygons=kwargs['polygons'],decimals=kwargs['decimals'])
+            else:
+                kwargs['profile'] = finite_patch_objects.Polygon(polygons=kwargs['polygons'])
         super(Extrusion, self).set_dimensions_(args,kwargs)
 
     def update_bounding_box(self):
