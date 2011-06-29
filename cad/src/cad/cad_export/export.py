@@ -18,6 +18,7 @@ import os
 import scad
 import povray
 import bom
+import matplotlib
 
 export_maps = {'scad': scad.SCADExportMap,
                'povray': povray.POVRAYExportMap,

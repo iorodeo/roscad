@@ -18,9 +18,9 @@ import copy
 import csg_objects
 
 
-class GeometricObject(csg_objects.CSGObject):
+class FiniteGeometricObject(csg_objects.CSGObject):
     def __init__(self):
-        super(GeometricObject, self).__init__()
+        super(FiniteGeometricObject, self).__init__()
         self.dimensions = {}
         self.dimensions_default = {}
         self.set_color()
@@ -42,7 +42,7 @@ class GeometricObject(csg_objects.CSGObject):
         return copy.deepcopy(self.dimensions[dimension_name])
 
     def get_obj_str(self,depth=0):
-        obj_str_header = super(GeometricObject, self).get_obj_str(depth)
+        obj_str_header = super(FiniteGeometricObject, self).get_obj_str(depth)
         obj_str = '{indent}dimensions = \n{indent}{dimensions:s}\n'
         obj_str = obj_str.format(indent = self.get_object_parameter('indent_str')*depth,
                                  dimensions = str(self.get_dimensions()))

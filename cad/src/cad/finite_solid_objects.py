@@ -19,7 +19,12 @@ import geometric_objects
 import finite_patch_objects
 
 
-class Box(geometric_objects.GeometricObject):
+
+class _FiniteSolidObject(geometric_objects.FiniteGeometricObject):
+    def __init__(self,*args,**kwargs):
+        super(_FiniteSolidObject, self).__init__()
+
+class Box(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Box, self).__init__()
         self.dimensions_default = {'x': 1, 'y': 1, 'z': 1}
@@ -31,7 +36,7 @@ class Box(geometric_objects.GeometricObject):
         dimensions = self.get_dimensions()
         super(Box, self).update_bounding_box(dimensions)
 
-class Sphere(geometric_objects.GeometricObject):
+class Sphere(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Sphere, self).__init__()
         self.dimensions_default = {'r': 0.5}
@@ -44,7 +49,7 @@ class Sphere(geometric_objects.GeometricObject):
         diameter = dimensions['r']*2
         super(Sphere, self).update_bounding_box(x=diameter,y=diameter,z=diameter)
 
-class Cylinder(geometric_objects.GeometricObject):
+class Cylinder(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cylinder, self).__init__()
         self.dimensions_default = {'l': 1, 'r': 0.5}
@@ -57,7 +62,7 @@ class Cylinder(geometric_objects.GeometricObject):
         diameter = dimensions['r']*2
         super(Cylinder, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
-class Cone(geometric_objects.GeometricObject):
+class Cone(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Cone, self).__init__()
         self.dimensions_default = {'l': 1, 'r_pos': 0.1, 'r_neg': 0.5}
@@ -71,29 +76,49 @@ class Cone(geometric_objects.GeometricObject):
         diameter = r_max*2
         super(Cone, self).update_bounding_box(x=diameter,y=diameter,z=dimensions['l'])
 
-class Extrusion(geometric_objects.GeometricObject):
+class Extrusion(_FiniteSolidObject):
     def __init__(self,*args,**kwargs):
         super(Extrusion, self).__init__()
-        self.dimensions_default = {'l': 1, 'profile': []}
+        self.dimensions_default = {'l': 1}
         self.set_dimensions_(args,kwargs)
         self.set_exportable(True)
         self.set_primative('extrusion')
         self.bounding_box = Box()
 
     def get_profile(self):
-        return self.get_dimension('profile')
+        obj_list = self.get_obj_list()
+        if len(obj_list) == 1:
+            return obj_list[0]
 
     def set_dimensions_(self,args,kwargs):
-        if kwargs.has_key('polygons') and (not kwargs.has_key('profile')):
-            if kwargs.has_key('decimals'):
-                kwargs['profile'] = finite_patch_objects.Polygon(polygons=kwargs['polygons'],decimals=kwargs['decimals'])
-            else:
-                kwargs['profile'] = finite_patch_objects.Polygon(polygons=kwargs['polygons'])
+        self.add_obj(finite_patch_objects.Polygon(*args,**kwargs))
         super(Extrusion, self).set_dimensions_(args,kwargs)
 
     def update_bounding_box(self):
         dimensions = self.get_dimensions()
         super(Extrusion, self).update_bounding_box(x=1,y=1,z=dimensions['l'])
+
+class Rotation(_FiniteSolidObject):
+    def __init__(self,*args,**kwargs):
+        super(Rotation, self).__init__()
+        self.dimensions_default = {}
+        self.set_dimensions_(args,kwargs)
+        self.set_exportable(True)
+        self.set_primative('rotation')
+        self.bounding_box = Box()
+
+    def get_profile(self):
+        obj_list = self.get_obj_list()
+        if len(obj_list) == 1:
+            return obj_list[0]
+
+    def set_dimensions_(self,args,kwargs):
+        self.add_obj(finite_patch_objects.Polygon(*args,**kwargs))
+        super(Rotation, self).set_dimensions_(args,kwargs)
+
+    def update_bounding_box(self):
+        dimensions = self.get_dimensions()
+        super(Rotation, self).update_bounding_box(x=1,y=1,z=1)
 
 
 if __name__ == "__main__":
@@ -132,6 +157,4 @@ if __name__ == "__main__":
     arrow_z.set_color([0,0,1],recursive=True)
     uni = uni | arrow_x | arrow_y | arrow_z
 
-    beam = Extrusion(profile='import/1010.dxf',l=20)
-    uni = uni | beam
     uni.export()

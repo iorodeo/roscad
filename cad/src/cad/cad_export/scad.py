@@ -22,22 +22,24 @@ import numpy
 
 
 class SCADPoints(object):
-    def __init__(self,points,decimals=5):
+    def __init__(self,points,decimals=5,indent_str="",depth=0):
         self.points = points
         self.decimals = decimals
+        self.indent_str = indent_str
+        self.depth = depth
 
     def __str__(self):
-        return_str = "["
+        return_str = "[\n"
         for point in self.points:
-            return_str += "["
+            return_str += self.indent_str*self.depth*3 + "["
             for number in point:
                 number_format_str = "{number:." + str(self.decimals) + "f}"
                 number_str = number_format_str.format(number=number)
                 return_str += number_str
                 return_str += ","
             return_str = return_str[:-1]
-            return_str += "],"
-        return_str = return_str[:-1]
+            return_str += "],\n"
+        return_str = return_str[:-2]
         return_str += "]"
         return return_str
 
@@ -69,8 +71,13 @@ class SCADExportMap(object):
                                         'footer': ''},
                            'cone': {'header': 'cylinder(h = {l:0.5f}, r1 = {r_neg:0.5f}, r2 = {r_pos:0.5f}, center = true);',
                                     'footer': ''},
-                           'extrusion': {'header': 'linear_extrude(height = {l:0.5f}, center = true, convexity=10, twist=0) {block_open} polygon(points={points}, paths={paths});',
-                                    'footer': '{block_close}'}}
+                           'extrusion': {'header': 'linear_extrude(height = {l:0.5f}, center = true, convexity = 10, twist = 0) {block_open}',
+                                         'footer': '{block_close}'},
+                           'rotation': {'header': 'rotate_extrude(convexity = 10) {block_open}',
+                                         'footer': '{block_close}'},
+                           'polygon':  {'header': 'polygon(\n{indent}{indent}points = {points},\n{indent}{indent}paths = {paths});',
+                                        'footer': ''},
+                           }
 
     def get_file_header_str(self,obj,filename):
         width = 70
@@ -105,29 +112,31 @@ class SCADExportMap(object):
 
         return file_header_str
 
-    def get_dimensions_from_extrusion(self,obj):
+    def get_dimensions_from_polygon(self,obj,depth):
         dimensions = obj.get_dimensions()
-        profile = obj.get_profile()
-        points = profile.get_points()
-        decimals = profile.get_decimals()
-        scad_points = SCADPoints(points,decimals)
+        points = obj.get_points()
+        # print "points = "
+        # print points
+        decimals = obj.get_decimals()
+        scad_points = SCADPoints(points,decimals,self.indent_str,depth)
         dimensions['points'] = scad_points
-        paths = profile.get_paths()
+        paths = obj.get_paths()
         dimensions['paths'] = paths
         return dimensions
 
-    def get_object_str(self,obj):
+    def get_object_str(self,obj,depth):
         primative = obj.get_primative()
         obj_str = ""
         if primative != '':
             if primative in self.object_map:
-                if primative == 'extrusion':
-                    dimensions = self.get_dimensions_from_extrusion(obj)
+                if primative == 'polygon':
+                    dimensions = self.get_dimensions_from_polygon(obj,depth)
                 else:
                     dimensions = obj.get_dimensions()
 
                 dimensions['block_open'] = '{block_open}'
                 dimensions['block_close'] = '{block_close}'
+                dimensions['indent'] = self.indent_str*depth
                 obj_str = self.object_map[primative]['header']
                 obj_str = obj_str.format(**dimensions)
         return obj_str
@@ -245,7 +254,7 @@ class SCADExportMap(object):
 
     def get_objects_str(self,obj,depth=0):
         objects_str = ''
-        obj_str = self.get_object_str(obj)
+        obj_str = self.get_object_str(obj,depth)
         if obj_str != '':
             obj_header_str = self.get_object_header_str(obj,depth)
             obj_header_str = obj_header_str.format(block_open = '{block_open}',
