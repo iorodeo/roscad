@@ -121,6 +121,29 @@ class ClearanceHole(fso.Cylinder):
         z_offset = -l/2 + self.top_clearance
         self.translate([0,0,z_offset])
 
+class TapHole(fso.Cylinder):
+    def __init__(self,*args,**kwargs):
+        self.parameters = SCREW_HOLE_PARAMETERS
+        dimensions_default = {'size' : '10',
+                              'type' : 'course',
+                              'percent' : '75%',
+                              'depth' : 1}
+        self.dimensions = self.fill_variable_with_args(args,kwargs,dimensions_default)
+        self.top_clearance = 0.1
+
+        size = self.dimensions['size']
+        type = self.dimensions['type']
+        percent = self.dimensions['percent']
+        depth = self.dimensions['depth']
+        diameter = self.parameters[size]['tap'][type][percent]
+        l = depth + self.top_clearance
+        r = diameter/2
+
+        super(TapHole,self).__init__(r=r,l=l)
+
+        z_offset = -l/2 + self.top_clearance
+        self.translate([0,0,z_offset])
+
 
 if __name__ == "__main__":
     pass
