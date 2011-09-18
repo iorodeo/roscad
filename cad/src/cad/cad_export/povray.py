@@ -61,13 +61,13 @@ class POVRAYExportMap(object):
                                           'footer': '{block_close}'},
                            'merge': {'header': 'merge {block_open}',
                                      'footer': '{block_close}'},
-                           'box': {'header': 'box {block_open} <-{x:0.5f},-{y:0.5f},-{z:0.5f}>,<{x:0.5f},{y:0.5f},{z:0.5f}>\n',
+                           'box': {'header': 'box {block_open} <-{x:0.5f},-{y:0.5f},-{z:0.5f}>,<{x:0.5f},{y:0.5f},{z:0.5f}>',
                                    'footer': '{block_close}'},
-                           'sphere': {'header': 'sphere {block_open} <0,0,0>,{r:0.5f}\n',
+                           'sphere': {'header': 'sphere {block_open} <0,0,0>,{r:0.5f}',
                                       'footer': '{block_close}'},
-                           'cylinder': {'header': 'cylinder {block_open} <0,0,-{l:0.5f}>,<0,0,{l:0.5f}>,{r:0.5f}\n',
+                           'cylinder': {'header': 'cylinder {block_open} <0,0,-{l:0.5f}>,<0,0,{l:0.5f}>,{r:0.5f}',
                                         'footer': '{block_close}'},
-                           'cone': {'header': 'cone {block_open} <0,0,-{l:0.5f}>,{r_neg:0.5f},<0,0,{l:0.5f}>,{r_pos:0.5f}\n',
+                           'cone': {'header': 'cone {block_open} <0,0,-{l:0.5f}>,{r_neg:0.5f},<0,0,{l:0.5f}>,{r_pos:0.5f}',
                                     'footer': ''},
                            'extrusion': {'header': 'linear_extrude(height = {l:0.5f}, center = true, convexity = 10, twist = 0) {block_open}',
                                          'footer': '{block_close}'},
@@ -96,43 +96,54 @@ class POVRAYExportMap(object):
         except KeyError:
             file_header_str += ""
         try:
-            file_header_str += "global_settings{ assumed_gamma {assumed_gamma:0.1f} }\n".format(assumed_gamma = obj.get_object_parameter('assumed_gamma'))
+            file_header_str += "global_settings { assumed_gamma {assumed_gamma:0.1f} }\n".format(assumed_gamma = obj.get_object_parameter('assumed_gamma'))
         except KeyError:
-            file_header_str += "global_settings{ assumed_gamma 1.0 }\n"
+            file_header_str += "global_settings { assumed_gamma 1.0 }\n"
         try:
-            file_header_str += "#default{ finish{ ambient {default_ambient:0.1f} diffuse {default_diffuse:0.1f} }}\n".format(default_ambient = obj.get_object_parameter('default_ambient'),
+            file_header_str += "#default { finish { ambient {default_ambient:0.1f} diffuse {default_diffuse:0.1f} } }\n".format(default_ambient = obj.get_object_parameter('default_ambient'),
                                                                                                                              default_diffuse = obj.get_object_parameter('default_diffuse'))
         except KeyError:
-            file_header_str += "#default{ finish{ ambient 0.1 diffuse 0.9 }}\n"
+            file_header_str += "#default { finish { ambient 0.1 diffuse 0.9 } }\n"
+        file_header_str += str0
+
+        # includes
+        file_header_str += '#include "colors.inc"\n'
+        file_header_str += '#include "textures.inc"\n'
+        file_header_str += '#include "glass.inc"\n'
+        file_header_str += '#include "metals.inc"\n'
+        file_header_str += '#include "golds.inc"\n'
+        file_header_str += '#include "stones.inc"\n'
+        file_header_str += '#include "woods.inc"\n'
         file_header_str += str0
 
         # camera
-        file_header_str += "camera{\n"
+        file_header_str += "camera {\n"
         try:
-            file_header_str += "{projection}\n".format(projection = obj.get_object_parameter('camera_projection'))
+            file_header_str += "{indent}{projection}\n".format(indent = self.indent_str, projection = obj.get_object_parameter('camera_projection'))
         except KeyError:
             pass
-        file_header_str += "right -x*image_width/image_height\n" # make right-handed coordinate system
-        file_header_str += "sky <0,0,1>\n"
+        file_header_str += "{indent}right -x*image_width/image_height\n".format(indent = self.indent_str) # make right-handed coordinate system
+        file_header_str += "{indent}sky <0,0,1>\n".format(indent = self.indent_str)
         try:
             camera_location = obj.get_object_parameter('camera_location')
-            file_header_str += "location <{camera_location[0]:0.5f},{camera_location[1]:0.5f},{camera_location[2]:0.5f}>\n".format(camera_location = camera_location)
+            file_header_str += "{indent}location <{camera_location[0]:0.5f},{camera_location[1]:0.5f},{camera_location[2]:0.5f}>\n".format(indent = self.indent_str, camera_location = camera_location)
         except KeyError:
-            file_header_str += "location <-10.0,-10.0,10.0>\n"
+            file_header_str += "{indent}location <-10000.0,-10000.0,10000.0>\n".format(indent = self.indent_str)
         try:
             camera_look_at = obj.get_object_parameter('camera_look_at')
-            file_header_str += "look_at <{camera_look_at[0]:0.5f},{camera_look_at[1]:0.5f},{camera_look_at[2]:0.5f}>\n".format(camera_look_at = camera_look_at)
+            file_header_str += "{indent}look_at <{camera_look_at[0]:0.5f},{camera_look_at[1]:0.5f},{camera_look_at[2]:0.5f}>\n".format(indent = self.indent_str, camera_look_at = camera_look_at)
         except KeyError:
-            pass
+            file_header_str += "{indent}look_at <0,0,0>\n".format(indent = self.indent_str)
         try:
-            file_header_str += "angle {angle:0.5f}\n".format(angle = obj.get_object_parameter('camera_angle'))
+            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = obj.get_object_parameter('camera_angle'))
         except KeyError:
+            # file_header_str += "{indent}angle 75\n".format(indent = self.indent_str)
             pass
         file_header_str += "}\n"
         file_header_str += str0
 
         # light sources
-        file_header_str += "light_source{< -3000, 3000, -3000> color rgb <1.0,1.0,1.0>}\n"
+        file_header_str += "light_source {< -3000, 3000, -3000> color rgb <1.0,1.0,1.0>}\n"
         file_header_str += str0
 
         # sky sphere
@@ -226,7 +237,8 @@ class POVRAYExportMap(object):
         #                          scale = scale,
         #                          color = color)
         # obj_str += '{obj}\n'
-        obj_str = '{obj}\n'
+        obj_str = '{indent}'.format(indent = self.indent_str*depth)
+        obj_str += '{obj}\n'
         return obj_str
 
     def get_object_footer_str(self,obj,depth):
@@ -241,47 +253,60 @@ class POVRAYExportMap(object):
         else:
             color = []
 
-        angles = [a*(180/math.pi) for a in rotation],
+        angles = [a*(180/math.pi) for a in rotation]
 
-        obj_footer_str = "{indent}{texture}\n{indent}{scale}{rotate}{translate}{obj_footer}\n"
+        obj_footer_str = ""
 
-        if not numpy.allclose(position,[0,0,0]):
-            translate_str = "translate <{position[0]:0.5f},{position[1]:0.5f},{position[2]:0.5f}> "
+        if len(color) != 0:
+            texture_str = "{indent}texture {block_open} pigment {block_open} color rgb<{color[0]:0.5f},{color[1]:0.5f},{color[2]:0.5f}> {block_close} finish {block_open} phong 1 reflection 0.00{block_close}{block_close}\n"
+            texture_str = texture_str.format(indent = self.indent_str*(depth+1),
+                                             block_open = '{block_open}',
+                                             block_close = '{block_close}',
+                                             color = color)
         else:
-            translate_str = ""
-        if not numpy.allclose(angles,[0,0,0]):
-            rotate_str = "rotate <{angles[0]:0.5f},{angles[1]:0.5f},{angles[2]:0.5f}> "
-        else:
-            rotate_str = ""
+            texture_str = ""
+
         if not numpy.allclose(scale,[1,1,1]):
             scale_str = "scale <{scale[0]:0.5f},{scale[1]:0.5f},{scale[2]:0.5f}> "
         else:
             scale_str = ""
-        if len(color) != 0:
-            texture_str = "texture {block_open} pigment {block_open} color rgb<{color[0]:0.5f},{color[1]:0.5f},{color[2]:0.5f}> {block_close} finish {block_open} phong 1 reflection 0.00{block_close}{block_close}"
+        if not numpy.allclose(angles,[0,0,0]):
+            rotate_str = "rotate <{angles[0]:0.5f},{angles[1]:0.5f},{angles[2]:0.5f}> "
         else:
-            texture_str = ""
+            rotate_str = ""
+        if not numpy.allclose(position,[0,0,0]):
+            translate_str = "translate <{position[0]:0.5f},{position[1]:0.5f},{position[2]:0.5f}> "
+        else:
+            translate_str = ""
+
+        if not((scale_str == "") and (rotate_str == "") and (translate_str == "")):
+            transformation_str = "{indent}{scale}{rotate}{translate}\n"
+            transformation_str = transformation_str.format(indent = self.indent_str*(depth+1),
+                                                           scale = scale_str,
+                                                           rotate = rotate_str,
+                                                           translate = translate_str)
+
+            transformation_str = transformation_str.format(block_open = '{block_open}',
+                                                           block_close = '{block_close}',
+                                                           position = position,
+                                                           angles = angles,
+                                                           scale = scale)
+        else:
+            transformation_str = ""
 
         footer_str = ""
         if primative != '':
             if primative in self.object_map:
-                footer_str = self.object_map[primative]['footer']
-
-        obj_footer_str = obj_footer_str.format(indent = self.indent_str*depth,
-                                               texture = texture_str,
-                                               scale = scale_str,
-                                               rotate = rotate_str,
-                                               translate = translate_str,
-                                               obj_footer = footer_str)
-        obj_footer_str = obj_footer_str.format(block_open = '{block_open}',
+                footer_str = "{indent}"
+                footer_str += self.object_map[primative]['footer']
+                footer_str += "\n"
+                footer_str = footer_str.format(indent = self.indent_str*depth,
+                                               block_open = '{block_open}',
                                                block_close = '{block_close}',
-                                               position = position,
-                                               angles = angles,
-                                               scale = scale,
-                                               color = color)
-        # obj_footer_str = "{indent}{block_close}{block_close}{block_close}{block_close}" + footer_str + "\n"
-        # obj_footer_str = obj_footer_str.format(indent = self.indent_str*depth,
-        #                                        block_close = '{block_close}')
+                                               )
+
+        obj_footer_str = texture_str + transformation_str + footer_str
+
         return obj_footer_str
 
     def get_objects_str(self,obj,depth=0):

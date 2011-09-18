@@ -19,6 +19,7 @@ import scad
 import povray
 import bom
 import matplotlib
+import subprocess
 
 export_maps = {'scad': scad.SCADExportMap,
                'povray': povray.POVRAYExportMap,
@@ -26,7 +27,8 @@ export_maps = {'scad': scad.SCADExportMap,
                }
 
 
-def get_export_map_and_filename(obj,filename,filetype):
+def get_export_map_filename_and_postprocess_filename(obj,filename,filetype):
+    postprocess_filename_extension = ""
     filename_base, filename_extension = os.path.splitext(filename)
     if (filetype != None):
         if type(filetype) != str:
@@ -38,6 +40,9 @@ def get_export_map_and_filename(obj,filename,filetype):
             filename_extension = '.pov'
         elif (filetype == 'bom') or (filetype == 'b'):
             filename_extension = '.txt'
+        elif (filetype == 'image') or (filetype == 'i') or (filetype == 'png'):
+            filename_extension = '.pov'
+            postprocess_filename_extension = '.png'
     elif filename_extension == '':
         filename_extension = '.scad'
 
@@ -46,6 +51,10 @@ def get_export_map_and_filename(obj,filename,filetype):
         filetype = 'povray'
     elif filename_extension == '.txt':
         filetype = 'bom'
+    elif filename_extension == '.png':
+        filetype = 'povray'
+        filename_extension = '.pov'
+        postprocess_filename_extension = '.png'
     else:
         filename_extension = '.scad'
         filetype = 'scad'
@@ -59,16 +68,31 @@ def get_export_map_and_filename(obj,filename,filetype):
 
     filename = filename_base + filename_extension
 
-    return export_map,filename
+    postprocess_filename = ""
+    if postprocess_filename_extension != "":
+        postprocess_filename = filename_base + postprocess_filename_extension
+
+    return export_map,filename,postprocess_filename
 
 def write_export_file(obj,filename,filetype):
-    export_map,filename = get_export_map_and_filename(obj,filename,filetype)
+    export_map,filename,postprocess_filename = get_export_map_filename_and_postprocess_filename(obj,filename,filetype)
     file_header_str = export_map.get_file_header_str(obj,filename)
     objects_str = export_map.get_objects_str(obj)
     fid = open(filename,'w')
     fid.write(file_header_str)
     fid.write(objects_str)
     fid.close()
+    if postprocess_filename != "":
+        command_str = "povray +I" + filename + " -O" + postprocess_filename
+        try:
+            image_size = obj.get_object_parameter('image_size')
+            image_width = image_size[0]
+            image_height = image_size[1]
+            command_str += " +W" + str(int(image_width)) + " +H" + str(int(image_height))
+        except KeyError:
+            command_str += " +W640 +H480"
+        command_str += " +A"
+        subprocess.check_call(command_str, shell=True)
 
 
 if __name__ == "__main__":
