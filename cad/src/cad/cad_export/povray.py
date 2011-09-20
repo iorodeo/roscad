@@ -179,64 +179,21 @@ class POVRAYExportMap(object):
                     dimensions['z'] /= 2
                 elif (primative == 'cylinder') or (primative == 'cone'):
                     dimensions['l'] /= 2
+
                 dimensions['block_open'] = '{block_open}'
                 dimensions['block_close'] = '{block_close}'
                 dimensions['indent'] = self.indent_str*depth
                 obj_str = self.object_map[primative]['header']
                 obj_str = obj_str.format(**dimensions)
+
+                if (primative == 'union') or (primative == 'intersection') or (primative == 'difference') or (primative == 'merge'):
+                    obj_list_len = obj.get_obj_list_len()
+                    if obj_list_len < 2:
+                        obj_str = ""
+
         return obj_str
 
     def get_object_header_str(self,obj,depth):
-        # position = obj.get_position()
-        # rotation = obj.get_rotation()
-        # scale = obj.get_scale()
-        # parameters = obj.get_object_parameters()
-
-        # if 'color' in parameters:
-        #     color = parameters['color']
-        # else:
-        #     color = []
-        # if 'slice' in parameters:
-        #     slice = parameters['slice']
-        # else:
-        #     slice = False
-        # angles = [a*(180/math.pi) for a in rotation]
-
-        # obj_str = "{indent}{slice}{translate}{rotate}{scale}{color}"
-
-        # if not numpy.allclose(position,[0,0,0]):
-        #     translate_str = "translate(v=[{position[0]:0.5f},{position[1]:0.5f},{position[2]:0.5f}]){block_open} "
-        # else:
-        #     translate_str = ""
-        # if not numpy.allclose(angles,[0,0,0]):
-        #     rotate_str = "rotate(a=[{angles[0]:0.5f},{angles[1]:0.5f},{angles[2]:0.5f}]){block_open} "
-        # else:
-        #     rotate_str = ""
-        # if not numpy.allclose(scale,[1,1,1]):
-        #     scale_str = "scale(v=[{scale[0]:0.5f},{scale[1]:0.5f},{scale[2]:0.5f}]){block_open} "
-        # else:
-        #     scale_str = ""
-        # if len(color) != 0:
-        #     color_str = "color([{color[0]:0.5f},{color[1]:0.5f},{color[2]:0.5f},{color[3]:0.5f}]){block_open} "
-        # else:
-        #     color_str = ""
-        # if slice:
-        #     slice_str = "projection(cut=true){block_open} "
-        # else:
-        #     slice_str = ""
-
-        # obj_str = obj_str.format(indent = self.indent_str*depth,
-        #                          slice = slice_str,
-        #                          translate = translate_str,
-        #                          rotate = rotate_str,
-        #                          scale = scale_str,
-        #                          color = color_str)
-        # obj_str = obj_str.format(block_open = '{block_open}',
-        #                          position = position,
-        #                          angles = angles,
-        #                          scale = scale,
-        #                          color = color)
-        # obj_str += '{obj}\n'
         obj_str = '{indent}'.format(indent = self.indent_str*depth)
         obj_str += '{obj}\n'
         return obj_str
@@ -319,80 +276,32 @@ class POVRAYExportMap(object):
                                                    obj = obj_str)
         else:
             obj_header_str = ''
-        if obj_header_str != '':
-            objects_str += obj_header_str
 
-            if 0 < len(obj.get_obj_list()):
-                for o in obj.get_obj_list():
+        objects_str += obj_header_str
+
+        if 0 < len(obj.get_obj_list()):
+            for o in obj.get_obj_list():
+                if obj_header_str != '':
                     objects_str = '{objects_str}{obj}'.format(objects_str = objects_str,
                                                               obj = self.get_objects_str(o,(depth+1)),
                                                               block_open = '{block_open}',
                                                               block_close = '{block_close}')
+                else:
+                    objects_str = '{objects_str}{obj}'.format(objects_str = objects_str,
+                                                              obj = self.get_objects_str(o,depth),
+                                                              block_open = '{block_open}',
+                                                              block_close = '{block_close}')
+
+        if obj_header_str != '':
             obj_footer_str = self.get_object_footer_str(obj,depth)
             objects_str += obj_footer_str
 
-
         if depth == 0:
+            print objects_str
             objects_str = objects_str.format(block_open = self.block_open_str,
                                              block_close = self.block_close_str)
 
         return objects_str
-        # export_obj_str = self.export_map.get_obj_str(obj=self)
-        # return export_obj_str
-
-        # def get_export_obj_header_str(self,depth):
-        #     export_obj_str = self.get_export_obj_str()
-        #     if export_obj_str != "":
-        #         export_obj_header_str = self.export_map.get_obj_header_str(obj = self,
-        #                                                                    depth = depth)
-        #         export_obj_header_str = export_obj_header_str.format(block_open = '{block_open}',
-        #                                                              block_close = '{block_close}',
-        #                                                              obj = export_obj_str)
-        #     else:
-        #         export_obj_header_str = ""
-        #     return export_obj_header_str
-
-        # if depth == 0:
-        #     # export_str_list = []
-        #     # export_str_list.append(self.export_map.get_file_header_str(filename))
-        #     export_str = self.export_map.get_file_header_str(filename,self)
-        # else:
-        #     export_str = ""
-        # export_obj_header_str = self.get_export_obj_header_str(depth)
-        # if export_obj_header_str != "":
-        #     # print "export_obj_header_str = " + export_obj_header_str
-        #     # print "export_obj_header_str == '.\n' " + str(export_obj_header_str == '.\n')
-        #     if export_obj_header_str != '.\n':
-        #         export_str += export_obj_header_str
-        #     # export_str_list.append(export_obj_header_str)
-
-        #     if 0 < len(self.get_obj_list()):
-        #         for obj in self.get_obj_list():
-        #             # export_str = '{export_str}{obj}'.format(export_str = export_str,
-        #             #                                         obj = obj.export(depth=(depth+1)),
-        #             #                                         block_open = '{block_open}',
-        #             #                                         block_close = '{block_close}')
-        #             export_str = '{export_str}{obj}'.format(export_str = export_str,
-        #                                                     obj = obj.export(filename=filename,depth=(depth+1)),
-        #                                                     block_open = '{block_open}',
-        #                                                     block_close = '{block_close}')
-
-        #     export_obj_footer_str = self.export_map.get_obj_footer_str(obj = self,
-        #                                                                depth = depth)
-        #     export_str = export_str + export_obj_footer_str
-
-        # if depth == 0:
-        #     fid = open(filename, 'w')
-        #     # for export_str in export_str_list:
-        #     #     export_str = export_str.format(block_open = self.export_map.block_open_str,
-        #     #                                    block_close = self.export_map.block_close_str)
-        #     #     fid.write(export_str)
-        #     export_str = export_str.format(block_open = self.export_map.block_open_str,
-        #                                    block_close = self.export_map.block_close_str)
-        #     fid.write(export_str)
-        #     fid.close()
-        # else:
-        #     return export_str
 
 
 if __name__ == "__main__":

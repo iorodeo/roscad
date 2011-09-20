@@ -139,6 +139,9 @@ class CADObject(object):
     def get_obj_list(self):
         return self.obj_list
 
+    def get_obj_list_len(self):
+        return len(self.obj_list)
+
     def copy(self):
         return copy.deepcopy(self)
 
