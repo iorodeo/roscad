@@ -143,7 +143,16 @@ class POVRAYExportMap(object):
         file_header_str += str0
 
         # light sources
-        file_header_str += "light_source {< -3000, 3000, -3000> color rgb <1.0,1.0,1.0>}\n"
+        try:
+            light_source_list = obj.get_object_parameter('light_source_list')
+            for light_source in light_source_list:
+                file_header_str += "light_source {block_open}<{light_source[0]:0.5f},{light_source[1]:0.5f},{light_source[2]:0.5f}>{block_close}\n".format(light_source = light_source,
+                                                                                                                                                          block_open = self.block_open_str,
+                                                                                                                                                          block_close = self.block_close_str)
+
+        except KeyError:
+            file_header_str += "light_source {< -3000, 3000, -3000> color rgb <1.0,1.0,1.0>}\n"
+
         file_header_str += str0
 
         # sky sphere
@@ -298,8 +307,11 @@ class POVRAYExportMap(object):
 
         if depth == 0:
             print objects_str
-            objects_str = objects_str.format(block_open = self.block_open_str,
-                                             block_close = self.block_close_str)
+            try:
+                objects_str = objects_str.format(block_open = self.block_open_str,
+                                                 block_close = self.block_close_str)
+            except KeyError:
+                pass
 
         return objects_str
 
