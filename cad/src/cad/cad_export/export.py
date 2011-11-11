@@ -92,6 +92,12 @@ def write_export_file(obj,filename,filetype):
         except KeyError:
             command_str += " +W640 +H480"
         command_str += " +A"
+        try:
+            display_render = obj.get_object_parameter('display_render')
+            if not display_render:
+                command_str += " -D"
+        except KeyError:
+            command_str += " -D"
         subprocess.check_call(command_str, shell=True)
 
 
