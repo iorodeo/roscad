@@ -93,17 +93,17 @@ class SCADExportMap(object):
 
         facets_written = False
         try:
-            file_header_str += '$fn = {facets.fn:d};\n'.format(facets = obj.get_object_parameter('facets'))
+            file_header_str += '$fn = {facets.fn:d};\n'.format(facets = obj.get_obj_parameter('facets'))
             facets_written = True
         except KeyError:
             pass
         try:
-            file_header_str += '$fa = {facets.fa:d};\n'.format(facets = obj.get_object_parameter('facets'))
+            file_header_str += '$fa = {facets.fa:d};\n'.format(facets = obj.get_obj_parameter('facets'))
             facets_written = True
         except KeyError:
             pass
         try:
-            file_header_str += '$fs = {facets.fs:d};\n'.format(facets = obj.get_object_parameter('facets'))
+            file_header_str += '$fs = {facets.fs:d};\n'.format(facets = obj.get_obj_parameter('facets'))
             facets_written = True
         except KeyError:
             pass
@@ -151,7 +151,7 @@ class SCADExportMap(object):
         position = obj.get_position()
         rotation = obj.get_rotation()
         scale = obj.get_scale()
-        parameters = obj.get_object_parameters()
+        parameters = obj.get_obj_parameters()
 
         if 'color' in parameters:
             color = parameters['color']
@@ -205,7 +205,7 @@ class SCADExportMap(object):
         position = obj.get_position()
         rotation = obj.get_rotation()
         scale = obj.get_scale()
-        parameters = obj.get_object_parameters()
+        parameters = obj.get_obj_parameters()
 
         if 'color' in parameters:
             color = parameters['color']

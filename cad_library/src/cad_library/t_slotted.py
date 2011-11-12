@@ -234,7 +234,7 @@ class Extrusion(fso.Extrusion):
         BOM.set_parameter('dimensions','l: {l:0.3f}'.format(l=self.l*scale[2]))
         BOM.set_parameter('vendor','Prime Resource')
         BOM.set_parameter('part number','?')
-        self.set_object_parameter('bom',BOM)
+        self.set_obj_parameter('bom',BOM)
 
     def get_profile_data(self,profile=''):
         if profile in PROFILE_DATA:
@@ -350,7 +350,7 @@ class LBracket(csg.Difference):
         BOM.set_parameter('vendor',self.profile_data['lbracket'][self.bracket_type]['vendor'])
         BOM.set_parameter('part number',self.profile_data['lbracket'][self.bracket_type]['part_number'])
         BOM.set_parameter('cost',self.profile_data['lbracket'][self.bracket_type]['cost'])
-        self.set_object_parameter('bom',BOM)
+        self.set_obj_parameter('bom',BOM)
 
     def get_profile_data(self,profile=''):
         if profile in PROFILE_DATA:

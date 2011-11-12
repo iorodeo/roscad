@@ -92,16 +92,16 @@ class POVRAYExportMap(object):
 
         # defaults
         try:
-            file_header_str += "#version {version:0.1f};\n".format(version = obj.get_object_parameter('povray_version'))
+            file_header_str += "#version {version:0.1f};\n".format(version = obj.get_obj_parameter('povray_version'))
         except KeyError:
             file_header_str += ""
         try:
-            file_header_str += "global_settings { assumed_gamma {assumed_gamma:0.1f} }\n".format(assumed_gamma = obj.get_object_parameter('assumed_gamma'))
+            file_header_str += "global_settings { assumed_gamma {assumed_gamma:0.1f} }\n".format(assumed_gamma = obj.get_obj_parameter('assumed_gamma'))
         except KeyError:
             file_header_str += "global_settings { assumed_gamma 1.0 }\n"
         try:
-            file_header_str += "#default { finish { ambient {default_ambient:0.1f} diffuse {default_diffuse:0.1f} } }\n".format(default_ambient = obj.get_object_parameter('default_ambient'),
-                                                                                                                             default_diffuse = obj.get_object_parameter('default_diffuse'))
+            file_header_str += "#default { finish { ambient {default_ambient:0.1f} diffuse {default_diffuse:0.1f} } }\n".format(default_ambient = obj.get_obj_parameter('default_ambient'),
+                                                                                                                             default_diffuse = obj.get_obj_parameter('default_diffuse'))
         except KeyError:
             file_header_str += "#default { finish { ambient 0.1 diffuse 0.9 } }\n"
         file_header_str += str0
@@ -119,23 +119,23 @@ class POVRAYExportMap(object):
         # camera
         file_header_str += "camera {\n"
         try:
-            file_header_str += "{indent}{projection}\n".format(indent = self.indent_str, projection = obj.get_object_parameter('camera_projection'))
+            file_header_str += "{indent}{projection}\n".format(indent = self.indent_str, projection = obj.get_obj_parameter('camera_projection'))
         except KeyError:
             pass
         file_header_str += "{indent}right -x*image_width/image_height\n".format(indent = self.indent_str) # make right-handed coordinate system
         file_header_str += "{indent}sky <0,0,1>\n".format(indent = self.indent_str)
         try:
-            camera_location = obj.get_object_parameter('camera_location')
+            camera_location = obj.get_obj_parameter('camera_location')
             file_header_str += "{indent}location <{camera_location[0]:0.5f},{camera_location[1]:0.5f},{camera_location[2]:0.5f}>\n".format(indent = self.indent_str, camera_location = camera_location)
         except KeyError:
             file_header_str += "{indent}location <-10000.0,-10000.0,10000.0>\n".format(indent = self.indent_str)
         try:
-            camera_look_at = obj.get_object_parameter('camera_look_at')
+            camera_look_at = obj.get_obj_parameter('camera_look_at')
             file_header_str += "{indent}look_at <{camera_look_at[0]:0.5f},{camera_look_at[1]:0.5f},{camera_look_at[2]:0.5f}>\n".format(indent = self.indent_str, camera_look_at = camera_look_at)
         except KeyError:
             file_header_str += "{indent}look_at <0,0,0>\n".format(indent = self.indent_str)
         try:
-            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = obj.get_object_parameter('camera_angle'))
+            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = obj.get_obj_parameter('camera_angle'))
         except KeyError:
             # file_header_str += "{indent}angle 75\n".format(indent = self.indent_str)
             pass
@@ -144,7 +144,7 @@ class POVRAYExportMap(object):
 
         # light sources
         try:
-            light_source_list = obj.get_object_parameter('light_source_list')
+            light_source_list = obj.get_obj_parameter('light_source_list')
             for light_source in light_source_list:
                 file_header_str += "light_source {block_open}<{light_source[0]:0.5f},{light_source[1]:0.5f},{light_source[2]:0.5f}>{block_close}\n".format(light_source = light_source,
                                                                                                                                                           block_open = self.block_open_str,
@@ -212,7 +212,7 @@ class POVRAYExportMap(object):
         position = obj.get_position()
         rotation = obj.get_rotation()
         scale = obj.get_scale()
-        parameters = obj.get_object_parameters()
+        parameters = obj.get_obj_parameters()
 
         if 'color' in parameters:
             color = parameters['color']

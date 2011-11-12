@@ -115,7 +115,7 @@ class BOMExportMap(object):
 
     def get_object_bom(self,obj):
         try:
-            bom = obj.get_object_parameter('bom')
+            bom = obj.get_obj_parameter('bom')
         except KeyError:
             bom = {}
         return bom

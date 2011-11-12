@@ -28,7 +28,7 @@ class CADObject(object):
     def __init__(self):
         self.obj_list = []
 
-        self.object_parameters_default = {'transformations': {'position': [0,0,0],
+        self.obj_parameters_default = {'transformations': {'position': [0,0,0],
                                                               'orientation': [0,0,0,1],
                                                               'scale': [1,1,1]},
                                           'primative': '',
@@ -36,7 +36,7 @@ class CADObject(object):
                                           'indent_str': ' '*4,
                                           }
 
-        self.set_object_parameters()
+        self.set_obj_parameters()
 
     def fill_variable_with_args(self,args,kwargs,variable):
         # print "args = \n" + str(args)
@@ -112,18 +112,18 @@ class CADObject(object):
     def set_transformations(self,transformations):
         transformations_previous = self.get_transformations()
         transformations = self.fill_variable_with_args(transformations,transformations_previous)
-        self.set_object_parameter('transformations',transformations)
+        self.set_obj_parameter('transformations',transformations)
 
     def get_transformations(self):
-        self.get_object_parameter('transformations')
+        self.get_obj_parameter('transformations')
 
     def set_primative(self,primative):
         if type(primative) != str:
             primative = str(primative)
-        self.set_object_parameter('primative', primative)
+        self.set_obj_parameter('primative', primative)
 
     def get_primative(self):
-        return self.get_object_parameter('primative')
+        return self.get_obj_parameter('primative')
 
     def add_obj(self, obj):
         """Add a CAD object to the object list."""
@@ -151,31 +151,31 @@ class CADObject(object):
             color = [random.random(),random.random(),random.random(),1]
         if len(color) == 3:
             color.append(1)
-        self.set_object_parameter('color', color)
+        self.set_obj_parameter('color', color)
         # print "Setting color of " + self.get_class_name() + " to " + str(color)
         if recursive:
             for obj in self.get_obj_list():
                 obj.set_color(color,recursive=True)
 
     def get_color(self):
-        if 'color' not in self.object_parameters:
+        if 'color' not in self.obj_parameters:
             return []
         else:
-            return copy.deepcopy(self.get_object_parameter('color'))
+            return copy.deepcopy(self.get_obj_parameter('color'))
 
     def set_position(self,position=[0,0,0]):
         if len(position) == 3:
-            self.object_parameters['transformations']['position'] = copy.deepcopy(position)
+            self.obj_parameters['transformations']['position'] = copy.deepcopy(position)
 
     def get_position(self):
-        return copy.deepcopy(self.object_parameters['transformations']['position'])
+        return copy.deepcopy(self.obj_parameters['transformations']['position'])
 
     def set_orientation(self,orientation=[0,0,0,1]):
         if len(orientation) == 4:
-            self.object_parameters['transformations']['orientation'] = copy.deepcopy(orientation)
+            self.obj_parameters['transformations']['orientation'] = copy.deepcopy(orientation)
 
     def get_orientation(self):
-        return copy.deepcopy(self.object_parameters['transformations']['orientation'])
+        return copy.deepcopy(self.obj_parameters['transformations']['orientation'])
 
     def translate(self,translation=[0,0,0]):
         if len(translation) == 3:
@@ -186,50 +186,54 @@ class CADObject(object):
             self.set_position(position)
 
     def set_scale(self,scale=1):
-        self.object_parameters['transformations']['scale'] = [1,1,1]
+        self.obj_parameters['transformations']['scale'] = [1,1,1]
         new_scale = copy.deepcopy(scale)
         try:
             if len(new_scale) == 3:
-                self.object_parameters['transformations']['scale'][0] = new_scale[0]
-                self.object_parameters['transformations']['scale'][1] = new_scale[1]
-                self.object_parameters['transformations']['scale'][2] = new_scale[2]
+                self.obj_parameters['transformations']['scale'][0] = new_scale[0]
+                self.obj_parameters['transformations']['scale'][1] = new_scale[1]
+                self.obj_parameters['transformations']['scale'][2] = new_scale[2]
             elif len(new_scale) == 1:
-                self.object_parameters['transformations']['scale'][0] = new_scale[0]
-                self.object_parameters['transformations']['scale'][1] = new_scale[0]
-                self.object_parameters['transformations']['scale'][2] = new_scale[0]
+                self.obj_parameters['transformations']['scale'][0] = new_scale[0]
+                self.obj_parameters['transformations']['scale'][1] = new_scale[0]
+                self.obj_parameters['transformations']['scale'][2] = new_scale[0]
         except:
-            self.object_parameters['transformations']['scale'][0] = scale
-            self.object_parameters['transformations']['scale'][1] = scale
-            self.object_parameters['transformations']['scale'][2] = scale
+            self.obj_parameters['transformations']['scale'][0] = scale
+            self.obj_parameters['transformations']['scale'][1] = scale
+            self.obj_parameters['transformations']['scale'][2] = scale
 
     def get_scale(self):
-        return copy.deepcopy(self.object_parameters['transformations']['scale'])
+        return copy.deepcopy(self.obj_parameters['transformations']['scale'])
 
     def set_exportable(self,exportable=False):
         if type(exportable) == bool:
-            self.set_object_parameter('exportable', exportable)
+            self.set_obj_parameter('exportable', exportable)
 
     def get_exportable(self):
-        return self.get_object_parameter('exportable')
+        return self.get_obj_parameter('exportable')
 
-    def set_object_parameters(self,object_parameters={}):
-        if object_parameters == {}:
-            self.object_parameters = copy.deepcopy(self.object_parameters_default)
-        elif type(object_parameters) == dict:
-            self.object_parameters = copy.deepcopy(object_parameters)
+    def set_obj_parameters(self,obj_parameters={}):
+        if obj_parameters == {}:
+            self.obj_parameters = copy.deepcopy(self.obj_parameters_default)
+        elif type(obj_parameters) == dict:
+            self.obj_parameters = copy.deepcopy(obj_parameters)
 
-    def get_object_parameters(self):
-        return copy.deepcopy(self.object_parameters)
+    def get_obj_parameters(self):
+        return copy.deepcopy(self.obj_parameters)
 
-    def set_object_parameter(self,key,value):
+    def set_obj_parameter(self,key,value):
         if type(key) != str:
             key = str(key)
-        self.object_parameters[key] = copy.deepcopy(value)
+        self.obj_parameters[key] = copy.deepcopy(value)
 
-    def get_object_parameter(self,key):
+    def get_obj_parameter(self,key):
         if type(key) != str:
             key = str(key)
-        return copy.deepcopy(self.object_parameters[key])
+        return copy.deepcopy(self.obj_parameters[key])
+
+    def update_obj_parameters(self,obj_parameters):
+        if type(obj_parameters) == dict:
+            self.obj_parameters.update(copy.deepcopy(obj_parameters))
 
     def get_class_name(self):
         class_str = str(type(self))
@@ -237,10 +241,10 @@ class CADObject(object):
         return m.group('classname')
 
     def get_obj_str(self,depth=0):
-        obj_str = '{indent}class name = \n{indent}{classname}\n{indent}object_parameters = \n{indent}{object_parameters}\n{indent}obj_list = \n{indent}{obj_list}\n'
-        obj_str = obj_str.format(indent = self.get_export_object_parameter('indent_str')*depth,
+        obj_str = '{indent}class name = \n{indent}{classname}\n{indent}obj_parameters = \n{indent}{obj_parameters}\n{indent}obj_list = \n{indent}{obj_list}\n'
+        obj_str = obj_str.format(indent = self.get_export_obj_parameter('indent_str')*depth,
                                  classname = str(self.get_class_name()),
-                                 object_parameters = str(self.get_object_parameters()),
+                                 obj_parameters = str(self.get_obj_parameters()),
                                  obj_list = str(self.get_obj_list()))
         return obj_str
 

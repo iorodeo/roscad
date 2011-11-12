@@ -85,7 +85,7 @@ def write_export_file(obj,filename,filetype):
     if postprocess_filename != "":
         command_str = "povray +I" + filename + " -O" + postprocess_filename
         try:
-            image_size = obj.get_object_parameter('image_size')
+            image_size = obj.get_obj_parameter('image_size')
             image_width = image_size[0]
             image_height = image_size[1]
             command_str += " +W" + str(int(image_width)) + " +H" + str(int(image_height))
@@ -93,7 +93,7 @@ def write_export_file(obj,filename,filetype):
             command_str += " +W640 +H480"
         command_str += " +A"
         try:
-            display_render = obj.get_object_parameter('display_render')
+            display_render = obj.get_obj_parameter('display_render')
             if not display_render:
                 command_str += " -D"
         except KeyError:
