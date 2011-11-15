@@ -143,7 +143,8 @@ class SCADExportMap(object):
                 if (primative == 'union') or (primative == 'intersection') or (primative == 'difference') or (primative == 'merge'):
                     obj_list_len = obj.get_obj_list_len()
                     if obj_list_len < 2:
-                        obj_str = ""
+                        # obj_str = ""
+                        pass
 
         return obj_str
 
