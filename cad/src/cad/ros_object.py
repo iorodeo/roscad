@@ -16,7 +16,7 @@ limitations under the License.
 from __future__ import division
 import os
 import numpy
-import cad_object
+import render_object
 
 # Check to see if ROS is installed
 try:
@@ -26,7 +26,7 @@ except:
 
 
 if ros_root == "":
-    class ROSObject(cad_object.CADObject):
+    class ROSObject(render_object.RenderObject):
         """ROS object wrapper base class."""
         def __init__(self):
             super(ROSObject, self).__init__()
@@ -40,7 +40,7 @@ else:
 
     import copy
 
-    class ROSObject(cad_object.CADObject):
+    class ROSObject(render_object.RenderObject):
         """ROS object wrapper base class."""
         def __init__(self):
             super(ROSObject, self).__init__()

@@ -119,23 +119,23 @@ class POVRAYExportMap(object):
         # camera
         file_header_str += "camera {\n"
         try:
-            file_header_str += "{indent}{projection}\n".format(indent = self.indent_str, projection = obj.get_obj_parameter('camera_projection'))
+            file_header_str += "{indent}{projection}\n".format(indent = self.indent_str, projection = obj.camera.get_obj_parameter('camera_projection'))
         except KeyError:
             pass
         file_header_str += "{indent}right -x*image_width/image_height\n".format(indent = self.indent_str) # make right-handed coordinate system
         file_header_str += "{indent}sky <0,0,1>\n".format(indent = self.indent_str)
         try:
-            camera_location = obj.get_obj_parameter('camera_location')
+            camera_location = obj.camera.get_position()
             file_header_str += "{indent}location <{camera_location[0]:0.5f},{camera_location[1]:0.5f},{camera_location[2]:0.5f}>\n".format(indent = self.indent_str, camera_location = camera_location)
         except KeyError:
             file_header_str += "{indent}location <-10000.0,-10000.0,10000.0>\n".format(indent = self.indent_str)
         try:
-            camera_look_at = obj.get_obj_parameter('camera_look_at')
+            camera_look_at = obj.camera.get_obj_parameter('camera_look_at')
             file_header_str += "{indent}look_at <{camera_look_at[0]:0.5f},{camera_look_at[1]:0.5f},{camera_look_at[2]:0.5f}>\n".format(indent = self.indent_str, camera_look_at = camera_look_at)
         except KeyError:
             file_header_str += "{indent}look_at <0,0,0>\n".format(indent = self.indent_str)
         try:
-            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = obj.get_obj_parameter('camera_angle'))
+            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = obj.camera.get_obj_parameter('camera_angle'))
         except KeyError:
             # file_header_str += "{indent}angle 75\n".format(indent = self.indent_str)
             pass
@@ -143,14 +143,17 @@ class POVRAYExportMap(object):
         file_header_str += str0
 
         # light sources
-        try:
-            light_source_list = obj.get_obj_parameter('light_source_list')
-            for light_source in light_source_list:
-                file_header_str += "light_source {block_open}<{light_source[0]:0.5f},{light_source[1]:0.5f},{light_source[2]:0.5f}>{block_close}\n".format(light_source = light_source,
-                                                                                                                                                          block_open = self.block_open_str,
-                                                                                                                                                          block_close = self.block_close_str)
+        light_list = obj.get_light_list()
+        if 0 < len(light_list):
+            for light_source in light_list:
+                light_source_location = light_source.get_position()
+                light_source_color = light_source.get_color()
+                file_header_str += "light_source {block_open}<{light_source_location[0]:0.5f},{light_source_location[1]:0.5f},{light_source_location[2]:0.5f}>, rgb <{light_source_color[0]:0.5f},{light_source_color[1]:0.5f},{light_source_color[2]:0.5f}>{block_close}\n".format(light_source_location = light_source_location,
+                                                                                                                                                                                                                                                                                    light_source_color = light_source_color,
+                                                                                                                                                                                                                                                                                    block_open = self.block_open_str,
+                                                                                                                                                                                                                                                                                    block_close = self.block_close_str)
 
-        except KeyError:
+        else:
             file_header_str += "light_source {< -3000, 3000, -3000> color rgb <1.0,1.0,1.0>}\n"
 
         file_header_str += str0
