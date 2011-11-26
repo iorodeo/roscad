@@ -50,7 +50,6 @@ class RenderObject(cad_object.CADObject):
         self.camera_dict = {}
         self.light_list = []
         self.add_camera(name='default')
-        self.set_camera()
 
     def get_light_list(self):
         return copy.deepcopy(self.light_list)
@@ -85,9 +84,10 @@ class RenderObject(cad_object.CADObject):
 
         # Replace default if that is the only camera
         camera_count = self.get_camera_count()
-        camera_name = self.get_camera_name()
-        if (camera_count == 1) and (camera_name == 'default'):
-            self.clear_cameras()
+        if 0 < camera_count:
+            camera_name = self.get_camera_name()
+            if (camera_count == 1) and (camera_name == 'default'):
+                self.clear_cameras()
 
         self.camera_dict[name] = Camera(name,projection,angle,position,look_at,image_size,image_dir)
         camera_count = self.get_camera_count()
