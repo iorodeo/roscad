@@ -25,11 +25,11 @@ class Camera(cad_object.CADObject):
         super(Camera, self).__init__()
         image_ext = '.png'
         image_name = name + image_ext
-        self.set_obj_parameter('name',name)
-        self.set_obj_parameter('projection',projection)
-        self.set_obj_parameter('angle',angle)
+        self.set_obj_parameter('camera_name',name)
+        self.set_obj_parameter('camera_projection',projection)
+        self.set_obj_parameter('camera_angle',angle)
         self.set_position(position)
-        self.set_obj_parameter('look_at',look_at)
+        self.set_obj_parameter('camera_look_at',look_at)
         self.set_obj_parameter('image_size',image_size)
         self.set_obj_parameter('image_ext',image_ext)
         self.set_obj_parameter('image_name',image_name)
@@ -66,7 +66,7 @@ class RenderObject(cad_object.CADObject):
         self.light_list.append(light)
 
     def get_camera_name(self):
-        return self.camera.get_obj_parameter('name')
+        return self.camera.get_obj_parameter('camera_name')
 
     def get_camera_names(self):
         return copy.deepcopy(self.camera_dict.keys())
@@ -95,7 +95,7 @@ class RenderObject(cad_object.CADObject):
             self.set_camera(name)
 
     def remove_camera(self,camera_name):
-        name = self.camera.get_obj_parameter('name')
+        name = self.camera.get_obj_parameter('camera_name')
         self.camera_dict.pop(camera_name)
         if name == camera_name:
             camera_names = self.get_camera_names()
