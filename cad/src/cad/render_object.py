@@ -64,7 +64,7 @@ class RenderObject(cad_object.CADObject):
 
     def add_light(self,position=[0,0,1000],color=[1.0,1.0,1.0,1.0]):
         light = Light(position,color)
-        self.light_list.extend(light)
+        self.light_list.append(light)
 
     def get_camera_name(self):
         return self.camera.get_obj_parameter('name')
