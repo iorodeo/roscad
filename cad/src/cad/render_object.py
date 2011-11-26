@@ -85,10 +85,14 @@ class RenderObject(cad_object.CADObject):
 
         # Replace default if that is the only camera
         camera_count = self.get_camera_count()
-        if camera_count == 1:
+        camera_name = self.get_camera_name()
+        if (camera_count == 1) and (camera_name == 'default'):
             self.clear_cameras()
 
         self.camera_dict[name] = Camera(name,projection,angle,position,look_at,image_size,image_dir)
+        camera_count = self.get_camera_count()
+        if camera_count == 1:
+            self.set_camera(name)
 
     def remove_camera(self,camera_name):
         name = self.camera.get_obj_parameter('name')
