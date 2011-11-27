@@ -36,6 +36,10 @@ class Camera(cad_object.CADObject):
         self.set_obj_parameter('image_dir',image_dir)
         self.set_obj_parameter('image_path',os.path.join(image_dir,image_name))
 
+    def set_image_dir(self,image_dir=''):
+        self.set_obj_parameter('image_dir',image_dir)
+        image_name = self.get_obj_parameter('image_name')
+        self.set_obj_parameter('image_path',os.path.join(image_dir,image_name))
 
 class Light(cad_object.CADObject):
     def __init__(self,position=[0,0,1000],color=[1.0,1.0,1.0,1.0]):
