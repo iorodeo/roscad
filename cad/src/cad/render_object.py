@@ -16,17 +16,20 @@ limitations under the License.
 from __future__ import division
 import os
 import copy
+import math
 
 import cad_object
 
 
 class Camera(cad_object.CADObject):
-    def __init__(self,name='default',projection='perspective',angle=65,position=[0,0,100],look_at=[0,0,0],image_size=[640,480],image_dir=''):
+    def __init__(self,name='default',projection='perspective',angle=1.134,position=[0,0,100],look_at=[0,0,0],image_size=[640,480],image_dir=''):
         super(Camera, self).__init__()
         image_ext = '.png'
         image_name = name + image_ext
         self.set_obj_parameter('camera_name',name)
         self.set_obj_parameter('camera_projection',projection)
+        if 2*math.pi < angle:
+            angle = angle*math.pi/180
         self.set_obj_parameter('camera_angle',angle)
         self.set_position(position)
         self.set_obj_parameter('camera_look_at',look_at)
@@ -81,7 +84,7 @@ class RenderObject(cad_object.CADObject):
     def clear_cameras(self):
         self.camera_dict = {}
 
-    def add_camera(self,name='',projection='perspective',angle=65,position=[0,0,100],look_at=[0,0,0],image_size=[640,480],image_dir=''):
+    def add_camera(self,name='',projection='perspective',angle=1.134,position=[0,0,100],look_at=[0,0,0],image_size=[640,480],image_dir=''):
         if name == '':
             camera_count = self.get_camera_count()
             name = 'camera' + str(camera_count)

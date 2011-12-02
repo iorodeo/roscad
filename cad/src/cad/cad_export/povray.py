@@ -135,9 +135,15 @@ class POVRAYExportMap(object):
         except KeyError:
             file_header_str += "{indent}look_at <0,0,0>\n".format(indent = self.indent_str)
         try:
-            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = obj.camera.get_obj_parameter('camera_angle'))
+            camera_angle = (180/math.pi)*obj.camera.get_obj_parameter('camera_angle')
+            file_header_str += "{indent}angle {angle:0.5f}\n".format(indent = self.indent_str,angle = camera_angle)
         except KeyError:
-            # file_header_str += "{indent}angle 75\n".format(indent = self.indent_str)
+            pass
+        try:
+            camera_up = obj.camera.get_obj_parameter('camera_up')
+            if 0 < len(camera_up):
+                file_header_str += "{indent}up <{camera_up[0]:0.5f},{camera_up[1]:0.5f},{camera_up[2]:0.5f}>\n".format(indent = self.indent_str, camera_up = camera_up)
+        except KeyError:
             pass
         file_header_str += "}\n"
         file_header_str += str0
